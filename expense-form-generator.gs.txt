@@ -1,0 +1,142 @@
+/**
+ * ============================================================================
+ *  LOG OUR TRAVEL — expense form generator
+ * ----------------------------------------------------------------------------
+ *  Run this once and it BUILDS the whole Google Form for you (all fields, the
+ *  Day+Location dropdown, and a linked results Sheet). No manual form building.
+ *
+ *  HOW TO USE (5 minutes, one time per trip):
+ *   1. Go to  https://script.google.com  and sign in with your Google account.
+ *   2. Click  New project.
+ *   3. Delete whatever code is in the editor, and PASTE this entire file.
+ *   4. Up top, make sure the function dropdown shows  createExpenseForm.
+ *   5. Click  Run  (▶). The first time, Google asks you to authorize — click
+ *      through: Review permissions → pick your account → Advanced →
+ *      "Go to (project)" → Allow. (This is normal; it's your own script.)
+ *   6. Click  Run  again if needed. When it finishes, open  View → Logs
+ *      (or  Execution log). It prints two links:
+ *         • FORM (fill-in) link  — bookmark this on BOTH phones to log expenses.
+ *         • EDIT link            — to tweak the form later.
+ *      It also creates a Google Sheet named "Log Our Travel — <trip> (Responses)".
+ *
+ *  THEN publish the Sheet as CSV and paste the link into the site
+ *  (see README section 1, steps C–D).
+ *
+ *  To make a form for a DIFFERENT trip later: change TRIP_NAME and the DAYS
+ *  list below, then Run again.
+ * ============================================================================
+ */
+
+// ---- EDIT THESE FOR EACH TRIP ---------------------------------------------
+var TRIP_NAME = "Albania, Bosnia & Montenegro 2026";
+
+// Day dropdown options. Each is self-labeling so picking the day also records
+// the location — the website reads the leading "Day N" automatically.
+var DAYS = [
+  "Day 3 — Gjirokastër",
+  "Day 4 — Gjirokastër (Blue Eye & Castle)",
+  "Day 5 — Sarandë (coast)",
+  "Day 6 — Butrint & Ksamil",
+  "Day 7 — Dhërmi (Riviera)",
+  "Day 8 — Berat → Shkodër",
+  "Day 9 — Komani Lake / Shkodër",
+  "Day 10 — Theth",
+  "Day 11 — Mostar (Bosnia)",
+  "Day 12 — Budva → Kotor",
+  "Day 13 — Lovćen & Njeguši",
+  "Day 14 — Bay of Kotor",
+  "Day 15 — Departure"
+];
+
+var EXPENSE_TYPES = [
+  "Hotel / Lodging",
+  "Rental car",
+  "Fuel / Gas",
+  "Parking / Tolls",
+  "Breakfast",
+  "Lunch",
+  "Dinner",
+  "Snack / Coffee",
+  "Groceries / Water",
+  "Entry fee / Tickets",
+  "Excursion / Tour",
+  "Boat / Ferry",
+  "Taxi / Transit",
+  "Shopping / Souvenirs",
+  "Tips / Service",
+  "SIM / Data",
+  "Other"
+];
+
+var CURRENCIES = ["EUR (€)", "ALL (Albanian lek)", "BAM (Bosnian marka)", "USD ($)"];
+var PAID_BY   = ["Parikh", "Desai", "Split"];
+// ---------------------------------------------------------------------------
+
+function createExpenseForm() {
+  var form = FormApp.create("Log Our Travel — " + TRIP_NAME + " — Expenses");
+  form.setDescription(
+    "Quick expense log for our trip. Pick the day, the type, the amount and who paid. " +
+    "Takes ~10 seconds. Everything here becomes public traveler info on the website."
+  );
+  form.setCollectEmail(false);
+  form.setAllowResponseEdits(false);
+  form.setShowLinkToRespondAgain(true);  // "Submit another response" for fast repeat entry
+
+  // Day + location (dropdown)
+  form.addListItem()
+      .setTitle("Which day?")
+      .setHelpText("Picking the day also records where we were.")
+      .setChoiceValues(DAYS)
+      .setRequired(true);
+
+  // Expense type (dropdown)
+  form.addListItem()
+      .setTitle("Category")
+      .setChoiceValues(EXPENSE_TYPES)
+      .setRequired(true);
+
+  // Amount (number, validated)
+  var amount = form.addTextItem()
+      .setTitle("Amount")
+      .setHelpText("Just the number, e.g. 42.50")
+      .setRequired(true);
+  var numberValidation = FormApp.createTextValidation()
+      .setHelpText("Enter a number (e.g. 42.50)")
+      .requireNumber()
+      .build();
+  amount.setValidation(numberValidation);
+
+  // Currency (dropdown)
+  form.addListItem()
+      .setTitle("Currency")
+      .setChoiceValues(CURRENCIES)
+      .setRequired(true);
+
+  // Paid by (multiple choice)
+  form.addMultipleChoiceItem()
+      .setTitle("Paid by")
+      .setChoiceValues(PAID_BY)
+      .setRequired(true);
+
+  // Description / comment (short text, optional)
+  form.addTextItem()
+      .setTitle("Description")
+      .setHelpText("Optional — e.g. 'Dinner at Vojsava' or 'Ksamil taxi boat'")
+      .setRequired(false);
+
+  // Create + link a results spreadsheet
+  var ss = SpreadsheetApp.create("Log Our Travel — " + TRIP_NAME + " (Responses)");
+  form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+
+  // Print the links
+  var editUrl = form.getEditUrl();
+  var liveUrl = form.getPublishedUrl();
+  Logger.log("──────────────────────────────────────────────");
+  Logger.log("✅ Form created for: " + TRIP_NAME);
+  Logger.log("FORM (fill-in) link — bookmark on both phones:\n" + liveUrl);
+  Logger.log("EDIT link:\n" + editUrl);
+  Logger.log("RESPONSES SHEET: " + ss.getUrl());
+  Logger.log("Next: open the Sheet → File → Share → Publish to web → this tab as CSV,");
+  Logger.log("then paste that CSV link into balkans-2026.json (costs.sheetCsvUrl) and set live:true.");
+  Logger.log("──────────────────────────────────────────────");
+}

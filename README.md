@@ -106,3 +106,29 @@ the footer carries a general credit line.
 
 --------------------------------------------------------------------------------
 ## 4. Hosting on GitHub Pages — see the separate walkthrough in chat.
+
+--------------------------------------------------------------------------------
+## 5. The expense form (easiest setup)
+
+Instead of hand-building the Google Form, use the generator:
+1. Open `expense-form-generator.gs.txt`. Follow the steps at the top — paste it
+   into script.google.com, Run, authorize, and it BUILDS the whole form for you
+   (Day+Location dropdown, expense types, amount, currency, paid-by, comment)
+   and creates the linked responses Sheet.
+2. It prints a FORM link (bookmark on both phones) and the Sheet.
+3. Publish the Sheet as CSV (README section 1C) and paste that link into
+   `balkans-2026.json` → `costs.sheetCsvUrl`, set `costs.live` to `true`.
+4. Optional: paste the FORM link into `costs.formUrl` to show a private
+   "＋ Log an expense" button on the trip page.
+
+## 6. Photos — use your own
+
+Each day looks for `img/<slug>.jpg` first, then a Wikimedia fallback, then a
+styled gradient tile. To use your own trip photos (recommended for the blog):
+create a folder called `img` in the repo and add files named:
+   img/gjirokaster.jpg, img/gjirokaster-castle.jpg, img/sarande.jpg,
+   img/ksamil.jpg, img/dhermi.jpg, img/berat.jpg, img/komani-lake.jpg,
+   img/theth.jpg, img/mostar.jpg, img/kotor.jpg, img/lovcen.jpg,
+   img/perast.jpg, and img/hero.jpg
+Wide landscape shots (roughly 1200×800) work best. Any you don't add simply
+show the gradient tile — nothing breaks.

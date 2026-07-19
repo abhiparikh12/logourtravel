@@ -5,15 +5,21 @@
    freeze-to-snapshot fallback.
    ========================================================================= */
 
-/* ---------- image source (Wikimedia Commons Special:FilePath) ------------- */
-const USE_LOCAL_IMAGES = false;          // set true to serve from /assets/img/
-const LOCAL_IMG_DIR = "assets/img/";
-function imgUrl(file, w){
+/* ---------- image sources -------------------------------------------------
+   Each day can have a local photo (img/<slug>.jpg) and/or a Wikimedia fallback.
+   The site tries the local file first; if it's missing, it tries Wikimedia;
+   if that also fails, a styled gradient tile with the place name shows.
+   Drop your own trip photos into an "img" folder as img/<slug>.jpg to use them.
+--------------------------------------------------------------------------- */
+const LOCAL_IMG_DIR = "img/";
+function localImg(slug){ return slug ? (LOCAL_IMG_DIR + slug + ".jpg") : ""; }
+function commonsImg(file, w){
   if(!file) return "";
-  if(USE_LOCAL_IMAGES) return LOCAL_IMG_DIR + file;
   return "https://commons.wikimedia.org/wiki/Special:FilePath/" +
          encodeURIComponent(file) + (w ? ("?width="+w) : "");
 }
+/* legacy name kept for any callers */
+function imgUrl(file, w){ return commonsImg(file, w); }
 
 /* ---------- Google Maps directions deep-links ----------------------------- */
 const MAPS_MODE = "directions"; // "directions" | "search"
@@ -78,13 +84,26 @@ function renderDays(){
     const items=d.items.map(x=>`<li>${linkPlaces(escapeHtml(x))}</li>`).join("");
     const tips=(d.tips&&d.tips.length)?`<div class="tips">`+d.tips.map(t=>
       `<div class="tip"><span class="ico">◈</span><div><b>Pro tip</b>${linkPlaces(escapeHtml(t))}</div></div>`).join("")+`</div>`:"";
-    const thumb=imgUrl(d.img,400), big=imgUrl(d.img,1200);
-    const thumbStyle=thumb?`background-image:url('${thumb}')`:"";
-    const fb=thumb?"":`<div class="fallback" style="background:${COUNTRY_GRAD[d.country]}"></div>`;
-    const photo=big?`<div class="day-photo"><img src="${big}" alt="${escapeHtml(d.place)}" loading="lazy" onerror="this.closest('.day-photo').style.display='none'"><div class="cap">${escapeHtml(d.place)}</div></div>`:"";
+    const localT=localImg(d.slug), localBig=localImg(d.slug);
+    const commonsT=commonsImg(d.img,400), commonsBig=commonsImg(d.img,1200);
+    const grad=COUNTRY_GRAD[d.country]||COUNTRY_GRAD.transit;
+    // primary src = local file; on error, swap to Wikimedia; on second error, hide (gradient shows).
+    const firstT = localT || commonsT;
+    const fbT = localT ? commonsT : "";
+    const firstBig = localBig || commonsBig;
+    const fbBig = localBig ? commonsBig : "";
+    const onerr = fb => fb
+      ? `onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb='';}else{this.style.display='none';}"`
+      : `onerror="this.style.display='none'"`;
+    const thumbImg = firstT
+      ? `<img class="thumb-img" src="${firstT}" ${fbT?`data-fb="${fbT}"`:""} alt="" loading="lazy" ${onerr(fbT)}>`
+      : "";
+    const photo = firstBig
+      ? `<div class="day-photo" style="background:${grad}"><img src="${firstBig}" ${fbBig?`data-fb="${fbBig}"`:""} alt="${escapeHtml(d.place)}" loading="lazy" ${onerr(fbBig)}><div class="cap">${escapeHtml(d.place)}</div></div>`
+      : "";
     return `<details class="day ${d.country}" id="day-${d.n}"${d.n===3?" open":""}>
       <summary class="day-head">
-        <div class="daythumb" style="${thumbStyle}">${fb}<div class="num"><div class="n">${d.n}</div><div class="l">Day</div></div></div>
+        <div class="daythumb" style="background:${grad}">${thumbImg}<div class="num"><div class="n">${d.n}</div><div class="l">Day</div></div></div>
         <div class="day-meta">
           <div class="day-place">${linkHeadlinePlace(d.place)}</div>
           <div class="day-title">${escapeHtml(d.title)}</div>
@@ -204,6 +223,12 @@ async function loadCosts(){
       ? "Live from our shared log — updates within a few minutes"
       : (source ? "Final costs from this trip" : "Cost log will appear here once we start the trip");
   }
+  // Optional private "Log an expense" button (only if a form URL is configured).
+  const logBtn=document.getElementById("logExpenseBtn");
+  if(logBtn){
+    if(cfg.formUrl){ logBtn.href=cfg.formUrl; logBtn.style.display="inline-flex"; }
+    else { logBtn.style.display="none"; }
+  }
   renderCosts();
 }
 
@@ -278,10 +303,16 @@ async function initTrip(jsonUrl){
     TRIP=await res.json();
   }catch(e){ console.error("Failed to load trip data",e); return; }
   buildPlaceMatcher(TRIP.places);
-  // hero bg
+  // hero bg: try local img/hero.jpg first, then Wikimedia
   const bg=document.getElementById("heroBg");
-  if(bg && TRIP.meta && TRIP.meta.hero){ const u=imgUrl(TRIP.meta.hero,1600);
-    const im=new Image(); im.onload=()=>bg.style.backgroundImage=`url('${u}')`; im.src=u; }
+  if(bg && TRIP.meta){
+    const localHero = TRIP.meta.hero_slug ? localImg(TRIP.meta.hero_slug) : "";
+    const commonsHero = TRIP.meta.hero ? commonsImg(TRIP.meta.hero,1600) : "";
+    const tryLoad=(url,next)=>{ if(!url){ if(next)next(); return; }
+      const im=new Image(); im.onload=()=>bg.style.backgroundImage=`url('${url}')`;
+      im.onerror=()=>{ if(next) next(); }; im.src=url; };
+    tryLoad(localHero, ()=>tryLoad(commonsHero, null));
+  }
   renderOverview(); renderDays(); renderDayNav(); await loadCosts(); initSidebar();
   // cost filters
   const f=document.getElementById("costFilters");
