@@ -1,0 +1,291 @@
+/* =========================================================================
+   Log Our Travel — trip page logic
+   Renders itinerary from a trip JSON, builds Google Maps directions links,
+   and reads live expense data from a published Google Sheet (CSV) with a
+   freeze-to-snapshot fallback.
+   ========================================================================= */
+
+/* ---------- image source (Wikimedia Commons Special:FilePath) ------------- */
+const USE_LOCAL_IMAGES = false;          // set true to serve from /assets/img/
+const LOCAL_IMG_DIR = "assets/img/";
+function imgUrl(file, w){
+  if(!file) return "";
+  if(USE_LOCAL_IMAGES) return LOCAL_IMG_DIR + file;
+  return "https://commons.wikimedia.org/wiki/Special:FilePath/" +
+         encodeURIComponent(file) + (w ? ("?width="+w) : "");
+}
+
+/* ---------- Google Maps directions deep-links ----------------------------- */
+const MAPS_MODE = "directions"; // "directions" | "search"
+function mapsUrl(q){
+  const e = encodeURIComponent(q);
+  return MAPS_MODE === "search"
+    ? "https://www.google.com/maps/search/?api=1&query=" + e
+    : "https://www.google.com/maps/dir/?api=1&destination=" + e;
+}
+
+const COUNTRY_GRAD = {
+  albania:"linear-gradient(150deg,#c65f38,#a84c2a)",
+  bosnia:"linear-gradient(150deg,#3a7d5d,#2c6047)",
+  montenegro:"linear-gradient(150deg,#3d6ea5,#2d5482)",
+  transit:"linear-gradient(150deg,#8a8f98,#6c727b)"
+};
+const CAT_ICON = {Food:"🍽️",Entry:"🏛️",Transport:"⛽",Lodging:"🏨",Boat:"⛵",Shopping:"🛍️",Fuel:"⛽",Tours:"⛵",Other:"✨"};
+const euro  = n => "€"+Math.round(n).toLocaleString("en-US");
+const euro2 = n => "€"+(Math.round(n*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function escapeReg(s){return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");}
+
+let TRIP = null, PLACE_ALT = null, PLACE_BY_ESC = {};
+
+function buildPlaceMatcher(places){
+  const entries = Object.keys(places||{}).sort((a,b)=>b.length-a.length)
+    .map(name=>({esc:escapeHtml(name), query:places[name]}));
+  PLACE_BY_ESC = {}; entries.forEach(p=>PLACE_BY_ESC[p.esc]=p.query);
+  PLACE_ALT = entries.length
+    ? new RegExp("(?<![\\w>])(" + entries.map(p=>escapeReg(p.esc)).join("|") + ")(?![\\w<])","g")
+    : null;
+}
+function linkPlaces(escText){
+  if(!PLACE_ALT) return escText;
+  return escText.replace(PLACE_ALT, m=>{
+    const q = PLACE_BY_ESC[m]; if(!q) return m;
+    return `<a class="maplink" href="${mapsUrl(q)}" target="_blank" rel="noopener">${m}<span class="pin">▸</span></a>`;
+  });
+}
+const HEADLINE_Q = {
+  "Gjirokastër":"Gjirokastër, Albania","Sarandë":"Sarandë, Albania","Ksamil":"Ksamil, Albania",
+  "Dhërmi":"Dhërmi, Albania","Berat":"Berat, Albania","Shkodër":"Shkodër, Albania",
+  "Theth (day trip)":"Theth, Albania","Mostar":"Mostar, Bosnia and Herzegovina",
+  "Budva":"Budva, Montenegro","Kotor":"Kotor, Montenegro","Lovćen NP":"Lovćen National Park, Montenegro",
+  "Bay of Kotor":"Bay of Kotor, Montenegro","Podgorica (TGD)":"Podgorica Airport, Montenegro",
+  "Podgorica / Tirana":"", "Sarandë / Ksamil":""
+};
+function segLink(seg){
+  seg=seg.trim(); const q=HEADLINE_Q[seg];
+  if(q==="") return escapeHtml(seg);
+  if(!q) return escapeHtml(seg);
+  return `<a class="maplink" href="${mapsUrl(q)}" target="_blank" rel="noopener">${escapeHtml(seg)}</a>`;
+}
+function linkHeadlinePlace(place){
+  return place.split(/\s*(→|\/)\s*/).map(t=>(t==="→"||t==="/")?` ${t} `:segLink(t)).join("");
+}
+
+/* ---------- render itinerary --------------------------------------------- */
+function renderDays(){
+  const host=document.getElementById("days"); if(!host) return;
+  host.innerHTML = TRIP.days.map(d=>{
+    const items=d.items.map(x=>`<li>${linkPlaces(escapeHtml(x))}</li>`).join("");
+    const tips=(d.tips&&d.tips.length)?`<div class="tips">`+d.tips.map(t=>
+      `<div class="tip"><span class="ico">◈</span><div><b>Pro tip</b>${linkPlaces(escapeHtml(t))}</div></div>`).join("")+`</div>`:"";
+    const thumb=imgUrl(d.img,400), big=imgUrl(d.img,1200);
+    const thumbStyle=thumb?`background-image:url('${thumb}')`:"";
+    const fb=thumb?"":`<div class="fallback" style="background:${COUNTRY_GRAD[d.country]}"></div>`;
+    const photo=big?`<div class="day-photo"><img src="${big}" alt="${escapeHtml(d.place)}" loading="lazy" onerror="this.closest('.day-photo').style.display='none'"><div class="cap">${escapeHtml(d.place)}</div></div>`:"";
+    return `<details class="day ${d.country}" id="day-${d.n}"${d.n===3?" open":""}>
+      <summary class="day-head">
+        <div class="daythumb" style="${thumbStyle}">${fb}<div class="num"><div class="n">${d.n}</div><div class="l">Day</div></div></div>
+        <div class="day-meta">
+          <div class="day-place">${linkHeadlinePlace(d.place)}</div>
+          <div class="day-title">${escapeHtml(d.title)}</div>
+          <div class="day-date">${escapeHtml(d.date)}</div>
+        </div>
+        <div class="chev">›</div>
+      </summary>
+      <div class="day-body">
+        ${photo}
+        <div class="maphint"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>Tap any underlined place for Google Maps directions</div>
+        <div class="drive"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#454b53" stroke-width="1.8"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11v6h-2v-2H7v2H5v-6Z"/><circle cx="7.5" cy="14.5" r="1"/><circle cx="16.5" cy="14.5" r="1"/></svg><span>${escapeHtml(d.drive)}</span></div>
+        <ul class="plan">${items}</ul>
+        ${tips}
+      </div>
+    </details>`;
+  }).join("");
+}
+
+/* ---------- sidebar day sub-nav ------------------------------------------ */
+function renderDayNav(){
+  const host=document.getElementById("dayNav"); if(!host) return;
+  host.innerHTML = TRIP.days.map(d=>
+    `<li><a href="#day-${d.n}"><span class="num">${d.n}</span>${escapeHtml(d.place)}</a></li>`).join("");
+}
+
+/* ---------- overview ----------------------------------------------------- */
+function renderOverview(){
+  const m=TRIP.meta;
+  const el=document.getElementById("ovStats"); if(!el) return;
+  const cells=[
+    ["Duration", m.days_count+" days", "on the road"],
+    ["Countries", String(m.countries.length), m.countries.join(" · ")],
+    ["When", m.dates, ""],
+    ["Style", "Self-drive", "two rental cars"]
+  ];
+  el.innerHTML=cells.map(c=>`<div class="ov-cell"><div class="k">${c[0]}</div><div class="v">${c[1]}</div><div class="s">${c[2]}</div></div>`).join("");
+}
+
+/* =========================================================================
+   COSTS — read live from a published Google Sheet (CSV), or a snapshot.
+   Configure per trip via TRIP.costs = { sheetCsvUrl, snapshotUrl, live }.
+   ========================================================================= */
+let EXP=[], costFilter="all";
+
+function parseCsv(text){
+  // minimal RFC-4180-ish CSV parser (handles quoted fields, commas, newlines)
+  const rows=[]; let row=[], val="", i=0, q=false;
+  while(i<text.length){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){val+='"';i++;} else q=false; }
+      else val+=c;
+    } else {
+      if(c==='"') q=true;
+      else if(c===",") { row.push(val); val=""; }
+      else if(c==="\n"){ row.push(val); rows.push(row); row=[]; val=""; }
+      else if(c==="\r"){ /* skip */ }
+      else val+=c;
+    }
+    i++;
+  }
+  if(val.length||row.length){ row.push(val); rows.push(row); }
+  return rows;
+}
+
+/* Map a sheet row (by header name) into our expense shape. Header names are
+   matched case-insensitively and loosely so small Form wording changes survive. */
+function rowsToExpenses(rows){
+  if(!rows.length) return [];
+  const head=rows[0].map(h=>h.trim().toLowerCase());
+  const find=(...keys)=>head.findIndex(h=>keys.some(k=>h.includes(k)));
+  const iDay=find("day"), iDesc=find("description","item","what"),
+        iCat=find("category","type"), iAmt=find("amount","cost","price","€","eur"),
+        iPaid=find("paid","who");
+  const out=[];
+  for(let r=1;r<rows.length;r++){
+    const row=rows[r]; if(!row || !row.join("").trim()) continue;
+    const amtRaw=(iAmt>=0?row[iAmt]:"")||"";
+    const amt=parseFloat(String(amtRaw).replace(/[^0-9.]/g,""));
+    if(!(amt>0)) continue;
+    out.push({
+      day:(iDay>=0?row[iDay]:"").toString().replace(/[^0-9]/g,"")||"",
+      desc:(iDesc>=0?row[iDesc]:"").toString().trim(),
+      cat:normalizeCat((iCat>=0?row[iCat]:"").toString().trim()),
+      amt, paid:(iPaid>=0?row[iPaid]:"").toString().trim()
+    });
+  }
+  return out;
+}
+function normalizeCat(c){
+  const s=c.toLowerCase();
+  if(/food|meal|lunch|dinner|break|drink|coffee|eat/.test(s)) return "Food";
+  if(/entry|ticket|admis|museum|castle|park/.test(s)) return "Entry";
+  if(/fuel|gas|petrol|transport|taxi|bus|car|toll|park/.test(s)) return "Transport";
+  if(/lodg|hotel|stay|room|airbnb/.test(s)) return "Lodging";
+  if(/boat|ferry|tour|cruise/.test(s)) return "Boat";
+  if(/shop|souvenir|gift|market/.test(s)) return "Shopping";
+  return c ? (c[0].toUpperCase()+c.slice(1)) : "Other";
+}
+
+async function loadCosts(){
+  const cfg=TRIP.costs||{};
+  const statusEl=document.getElementById("costStatus");
+  let source=null, live=false;
+  // Prefer live sheet if configured & flagged; else snapshot; else built-in.
+  const url = (cfg.live && cfg.sheetCsvUrl) ? cfg.sheetCsvUrl : (cfg.snapshotUrl||cfg.sheetCsvUrl);
+  if(url){
+    try{
+      const res=await fetch(url,{cache:"no-store"});
+      if(res.ok){ EXP=rowsToExpenses(parseCsv(await res.text())); live=!!(cfg.live && cfg.sheetCsvUrl); source="sheet"; }
+    }catch(e){ /* fall through */ }
+  }
+  if(source!=="sheet" && Array.isArray(cfg.seed)){ EXP=cfg.seed.slice(); source="seed"; }
+  if(statusEl){
+    statusEl.classList.toggle("live",live);
+    statusEl.querySelector("span").textContent = live
+      ? "Live from our shared log — updates within a few minutes"
+      : (source ? "Final costs from this trip" : "Cost log will appear here once we start the trip");
+  }
+  renderCosts();
+}
+
+function renderCosts(){
+  const list=document.getElementById("expList"); if(!list) return;
+  const total=EXP.reduce((s,e)=>s+e.amt,0);
+  const byCountry={albania:0,bosnia:0,montenegro:0};
+  const dayCountry={}; TRIP.days.forEach(d=>dayCountry[d.n]=d.country);
+  EXP.forEach(e=>{ const c=dayCountry[e.day]; if(c&&byCountry[c]!=null) byCountry[c]+=e.amt; });
+
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set("costTotal",euro(total));
+  set("costAlb",euro(byCountry.albania));
+  set("costBos",euro(byCountry.bosnia));
+  set("costMon",euro(byCountry.montenegro));
+  set("costPP", EXP.length?euro(total/8):"€0");
+  set("costCount",EXP.length);
+
+  // per-day table
+  const tb=document.querySelector("#costTable tbody");
+  if(tb){
+    const byDay={};
+    EXP.forEach(e=>{ const k=e.day||"?"; (byDay[k]=byDay[k]||{Food:0,Entry:0,Transport:0,Other:0,tot:0});
+      const bucket=["Food","Entry","Transport"].includes(e.cat)?e.cat:"Other";
+      byDay[k][bucket]+=e.amt; byDay[k].tot+=e.amt; });
+    const keys=Object.keys(byDay).filter(k=>k!=="?").map(Number).sort((a,b)=>a-b);
+    tb.innerHTML = keys.length ? keys.map(k=>{const b=byDay[k];
+      return `<tr><td>Day ${k}</td><td>${euro(b.Food)}</td><td>${euro(b.Entry)}</td><td>${euro(b.Transport)}</td><td>${euro(b.Other)}</td><td class="tot">${euro(b.tot)}</td></tr>`;}).join("")
+      : `<tr><td colspan="6" style="text-align:center;color:var(--faint)">No entries yet</td></tr>`;
+  }
+
+  // list
+  const shown=EXP.filter(e=>costFilter==="all"||e.cat===costFilter);
+  if(!EXP.length){
+    list.innerHTML=`<div class="cost-empty"><div class="big">Cost log coming soon</div>We log expenses live as we travel — real prices for meals, entries, fuel and boats. Check back once the trip is underway.</div>`;
+    return;
+  }
+  if(!shown.length){ list.innerHTML=`<div class="cost-empty"><div class="big">Nothing in this filter</div>Try another category.</div>`; return; }
+  list.innerHTML=shown.map(e=>{
+    const meta=[e.day?`Day ${e.day}`:"",e.paid,e.cat].filter(Boolean).join(" · ");
+    return `<div class="exp"><div class="cat">${CAT_ICON[e.cat]||"✨"}</div>
+      <div class="mid"><div class="t1">${escapeHtml(e.desc||e.cat)}</div><div class="t2">${escapeHtml(meta)}</div></div>
+      <div class="amt">${euro2(e.amt)}</div></div>`;
+  }).join("");
+}
+
+/* ---------- sidebar section switching (in-page anchors) ------------------ */
+function initSidebar(){
+  const links=[...document.querySelectorAll(".sb-nav > li > a[data-sec]")];
+  const sections=[...document.querySelectorAll(".content .panel[id], .content > #itinerary")];
+  // expand day sub-nav when Itinerary active
+  const dayToggle=document.querySelector('a[data-sec="itinerary"]');
+  const daySub=document.getElementById("daySub");
+  function activate(id){
+    links.forEach(a=>a.classList.toggle("active",a.dataset.sec===id));
+    if(daySub) daySub.classList.toggle("open", id==="itinerary");
+  }
+  links.forEach(a=>a.addEventListener("click",()=>activate(a.dataset.sec)));
+  // scroll spy
+  const spy=()=>{
+    const y=window.scrollY+120; let cur=null;
+    document.querySelectorAll(".content [data-spy]").forEach(s=>{ if(s.offsetTop<=y) cur=s.getAttribute("data-spy"); });
+    if(cur) activate(cur);
+  };
+  window.addEventListener("scroll",spy,{passive:true}); spy();
+}
+
+/* ---------- boot --------------------------------------------------------- */
+async function initTrip(jsonUrl){
+  try{
+    const res=await fetch(jsonUrl,{cache:"no-store"});
+    TRIP=await res.json();
+  }catch(e){ console.error("Failed to load trip data",e); return; }
+  buildPlaceMatcher(TRIP.places);
+  // hero bg
+  const bg=document.getElementById("heroBg");
+  if(bg && TRIP.meta && TRIP.meta.hero){ const u=imgUrl(TRIP.meta.hero,1600);
+    const im=new Image(); im.onload=()=>bg.style.backgroundImage=`url('${u}')`; im.src=u; }
+  renderOverview(); renderDays(); renderDayNav(); await loadCosts(); initSidebar();
+  // cost filters
+  const f=document.getElementById("costFilters");
+  if(f) f.addEventListener("click",e=>{const c=e.target.closest(".chip");if(!c)return;
+    costFilter=c.dataset.f; f.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===c)); renderCosts();});
+}
+window.LogOurTravel = { initTrip };

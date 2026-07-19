@@ -5,17 +5,14 @@ one HTML page that reads a JSON data file. The public site is read-only; you log
 expenses live through a Google Form, and the site reads the resulting Google Sheet.
 
 ```
-site/
-├── index.html                 landing page (trip cards + about)
-├── CNAME                      your custom domain (logourtravel.com)
-├── .nojekyll                  tells GitHub Pages to serve files as-is
-├── assets/
-│   ├── site.css               all styling
-│   └── trip.js                itinerary rendering, map links, cost reader
-├── data/
-│   └── balkans-2026.json      all content + cost config for the Balkan trip
-└── trips/
-    └── balkans-2026.html      the Balkan trip page (sidebar nav)
+(flat — every file at the top level, no folders)
+index.html                 landing page (trip cards + about)
+trip-balkans-2026.html     the Balkan trip page (sidebar nav)
+site.css                   all styling
+trip.js                    itinerary rendering, map links, cost reader
+balkans-2026.json          all content + cost config for the Balkan trip
+CNAME                      your custom domain (logourtravel.com)
+.nojekyll                  tells GitHub Pages to serve files as-is
 ```
 
 --------------------------------------------------------------------------------
@@ -61,7 +58,7 @@ Google Sheet. The site reads that Sheet. Do this once per trip.
    Never put anything private in this Sheet.
 
 ### D. Point the site at the Sheet
-Open `data/balkans-2026.json`, find the `"costs"` block, and set:
+Open `balkans-2026.json`, find the `"costs"` block, and set:
 
 ```json
 "costs": {
@@ -78,22 +75,22 @@ up to ~5 minutes, so it's near-live, not instant).
 ### E. When the trip is over — freeze it (optional but recommended)
 So the page stays fast forever and can't be changed by editing the Sheet later:
 1. Open the published CSV URL in a browser, save the file as
-   `data/balkans-2026-costs.csv`, commit it to the repo.
-2. In the JSON, set `"live": false` and `"snapshotUrl": "../data/balkans-2026-costs.csv"`.
+   `balkans-2026-costs.csv`, commit it to the repo.
+2. In the JSON, set `"live": false` and `"snapshotUrl": "balkans-2026-costs.csv"`.
    (Leave `sheetCsvUrl` as-is; when `live` is false the site reads the snapshot.)
 
 --------------------------------------------------------------------------------
 ## 2. Adding a future trip
 
-1. Copy `data/balkans-2026.json` → `data/<newtrip>.json`. Edit `meta`, `days`,
+1. Copy `balkans-2026.json` → `<newtrip>.json`. Edit `meta`, `days`,
    `places`, `costs`. The data shape is:
    - `meta`: id, title, subtitle, dates, countries[], days_count, travelers, hero, summary
    - `days[]`: n, date, title, place, country (albania|bosnia|montenegro|transit), img, drive, items[], tips[]
    - `places{}`: "Name shown in text": "Google Maps query, City, Country"
    - `costs`: the block from section 1
-2. Copy `trips/balkans-2026.html` → `trips/<newtrip>.html`. Change the `<title>`,
+2. Copy `trip-balkans-2026.html` → `trip-<newtrip>.html`. Change the `<title>`,
    the hero text, the overview route table, the "good to know" cards, and the last
-   line: `LogOurTravel.initTrip("../data/<newtrip>.json")`.
+   line: `LogOurTravel.initTrip("../<newtrip>.json")`.
 3. Add a card to `index.html` in the `#tripGrid` (copy the live-trip card block).
 
 That's it — no build step.
@@ -103,8 +100,8 @@ That's it — no build step.
 
 Images load from Wikimedia Commons via the stable `Special:FilePath` endpoint, so
 they work the moment the site is live. To self-host instead (faster, fully under
-your control): download each image into `assets/img/`, then set
-`USE_LOCAL_IMAGES = true` in `assets/trip.js`. Photos are CC BY-SA / public domain;
+your control): download each image into `img/`, then set
+`USE_LOCAL_IMAGES = true` in `trip.js`. Photos are CC BY-SA / public domain;
 the footer carries a general credit line.
 
 --------------------------------------------------------------------------------
