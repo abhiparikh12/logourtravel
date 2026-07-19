@@ -194,7 +194,8 @@ a.maplink:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-
 .ch .k{font-family:"Archivo Narrow";text-transform:uppercase;letter-spacing:.13em;font-size:10.5px;opacity:.9}
 .ch .v{font-family:"Fraunces";font-weight:900;font-size:26px;line-height:1;margin-top:6px}
 .ch .s{font-size:11px;opacity:.85;margin-top:4px}
-.cost-status{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin:2px 0 14px}
+.cost-status{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin:2px 0 16px;clear:both;position:relative;z-index:1;min-height:20px;line-height:1.4}
+.cost-status>span:last-child{display:inline-block}
 .cost-status .pip{width:8px;height:8px;border-radius:50%;background:var(--faint)}
 .cost-status.live .pip{background:var(--bos);box-shadow:0 0 0 3px rgba(58,125,93,.2)}
 .filters{display:flex;gap:7px;flex-wrap:wrap;margin:6px 0 12px;align-items:center}

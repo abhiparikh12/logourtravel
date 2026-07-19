@@ -219,7 +219,8 @@ async function loadCosts(){
   if(source!=="sheet" && Array.isArray(cfg.seed)){ EXP=cfg.seed.slice(); source="seed"; }
   if(statusEl){
     statusEl.classList.toggle("live",live);
-    statusEl.querySelector("span").textContent = live
+    const txt = statusEl.querySelector("span:last-child") || statusEl.querySelector("span");
+    txt.textContent = live
       ? "Live from our shared log — updates within a few minutes"
       : (source ? "Final costs from this trip" : "Cost log will appear here once we start the trip");
   }
