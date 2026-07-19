@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e3b43">
+<meta name="robots" content="noindex, nofollow">
+<title>Log · Private</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ivory:#f4efe4;--paper:#fbf9f2;--ink:#1f2329;--muted:#5c6169;--faint:#8a909a;
+  --teal:#0e3b43;--teal-2:#12545f;--sea:#2f9e9e;--terra:#c65f38;--terra-d:#a84c2a;--gold:#d9a441;
+  --line:rgba(31,35,41,.14);--good:#3a7d5d;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--ivory);color:var(--ink);font-family:"Archivo",system-ui,sans-serif;line-height:1.4;padding-bottom:120px}
+.wrap{max-width:520px;margin:0 auto;padding:0 16px}
+h1{font-family:"Fraunces",serif;font-weight:900}
+
+/* gate */
+#gate{position:fixed;inset:0;z-index:100;background:linear-gradient(160deg,#0b2f36,#0e3b43);display:flex;align-items:center;justify-content:center;padding:24px}
+#gate .box{width:100%;max-width:360px;text-align:center;color:#eaf3f0}
+#gate img{width:56px;height:56px;margin:0 auto 14px;display:block}
+#gate h1{color:#fff;font-size:26px;margin:0 0 6px}
+#gate p{color:#bcd8d3;font-size:13px;margin:0 0 20px;font-family:"Archivo Narrow";text-transform:uppercase;letter-spacing:.14em}
+#gate input{width:100%;font-size:20px;text-align:center;letter-spacing:.3em;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;margin-bottom:12px}
+#gate input:focus{outline:2px solid var(--gold)}
+#gate button{width:100%;font-family:"Archivo Narrow";font-weight:700;text-transform:uppercase;letter-spacing:.14em;font-size:14px;padding:15px;border-radius:12px;border:0;background:var(--terra);color:#fff;cursor:pointer}
+#gate .err{color:#ffb4a2;font-size:13px;height:18px;margin-top:8px}
+
+/* header */
+.top{background:linear-gradient(160deg,#0e3b43,#12545f);color:#fff;padding:16px 16px 18px;position:sticky;top:0;z-index:20}
+.top .in{max-width:520px;margin:0 auto}
+.top .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.top .brand{display:flex;align-items:center;gap:9px;font-family:"Fraunces";font-weight:900;font-size:17px}
+.top .brand img{width:26px;height:26px}
+.who{display:flex;gap:6px}
+.who button{font-family:"Archivo Narrow";font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11px;padding:6px 12px;border-radius:99px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#cfe8e4;cursor:pointer}
+.who button.on{background:#fff;color:var(--teal);border-color:#fff}
+.loc{margin-top:12px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.1);border-radius:12px;padding:10px 12px}
+.loc .day{font-family:"Fraunces";font-weight:900;font-size:20px;line-height:1}
+.loc .place{flex:1;min-width:0}
+.loc .place .p1{font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loc .place .p2{font-size:11px;color:#bcd8d3;font-family:"Archivo Narrow";text-transform:uppercase;letter-spacing:.1em}
+.loc select{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:8px;font-size:13px;max-width:150px}
+.loc select option{color:#000}
+
+/* section labels */
+.lbl{font-family:"Archivo Narrow";text-transform:uppercase;letter-spacing:.14em;font-size:11px;color:var(--muted);margin:20px 2px 8px}
+
+/* category grid */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cat{border:1px solid var(--line);background:var(--paper);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer;transition:.1s;display:flex;flex-direction:column;align-items:center;gap:5px}
+.cat .e{font-size:24px;line-height:1}
+.cat .t{font-size:12px;font-weight:600;color:var(--ink)}
+.cat.on{background:var(--teal);border-color:var(--teal)}
+.cat.on .t{color:#fff}
+.more-cats{display:none;margin-top:8px}
+.more-cats.open{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.morebtn{width:100%;margin-top:8px;font-family:"Archivo Narrow";font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:12px;padding:11px;border-radius:12px;border:1px dashed var(--line);background:transparent;color:var(--muted);cursor:pointer}
+
+/* amount */
+.amt-row{display:flex;gap:8px;align-items:stretch;margin-top:6px}
+.amt-field{flex:1;display:flex;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:0 14px}
+.amt-field .cur{font-family:"Fraunces";font-weight:900;font-size:22px;color:var(--terra-d);margin-right:8px}
+.amt-field input{flex:1;border:0;background:transparent;font-family:"Fraunces";font-weight:900;font-size:30px;padding:14px 0;width:100%;color:var(--ink)}
+.amt-field input:focus{outline:none}
+.cur-toggle{display:flex;flex-direction:column;gap:4px}
+.cur-toggle button{font-family:"Archivo Narrow";font-weight:700;font-size:11px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--paper);color:var(--muted);cursor:pointer;flex:1}
+.cur-toggle button.on{background:var(--gold);color:#3a2c07;border-color:var(--gold)}
+
+/* desc */
+#desc{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:12px 14px;font-size:15px;margin-top:6px}
+#desc:focus{outline:2px solid var(--sea)}
+
+/* save bar */
+.savebar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(244,239,228,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+.savebar .in{max-width:520px;margin:0 auto;display:flex;gap:10px;align-items:center}
+.savebar .sum{flex:1;font-size:13px;color:var(--muted)}
+.savebar .sum b{color:var(--teal);font-family:"Fraunces";font-size:16px}
+.savebtn{font-family:"Archivo Narrow";font-weight:700;text-transform:uppercase;letter-spacing:.14em;font-size:15px;padding:16px 28px;border-radius:14px;border:0;background:var(--terra);color:#fff;cursor:pointer;transition:.15s}
+.savebtn:disabled{opacity:.4}
+.savebtn.saved{background:var(--good)}
+
+/* toast + recent */
+#toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-80px);z-index:120;background:var(--good);color:#fff;padding:11px 20px;border-radius:99px;font-weight:600;font-size:14px;box-shadow:0 8px 24px -8px rgba(0,0,0,.4);transition:transform .28s;display:flex;align-items:center;gap:8px}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.recent{margin-top:22px}
+.recent h2{font-family:"Archivo Narrow";text-transform:uppercase;letter-spacing:.14em;font-size:11px;color:var(--muted);font-weight:700;margin:0 0 8px 2px}
+.ritem{display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:9px 12px;margin-bottom:7px;font-size:13.5px}
+.ritem .re{font-size:17px}.ritem .rm{flex:1;min-width:0}.ritem .rt{font-weight:600}.ritem .rs{font-size:11px;color:var(--faint)}
+.ritem .ra{font-family:"Fraunces";font-weight:900;color:var(--teal)}
+.ritem.pending .ra{color:var(--faint)}
+.hint{font-size:11.5px;color:var(--faint);text-align:center;margin-top:16px;padding:0 20px}
+</style>
+</head>
+<body>
+
+<!-- PASSCODE GATE -->
+<div id="gate">
+  <div class="box">
+    <img src="logo.svg" alt="">
+    <h1>Trip Log</h1>
+    <p>Private · enter passcode</p>
+    <input id="gateInput" type="password" inputmode="numeric" placeholder="••••" autocomplete="off">
+    <button id="gateBtn">Unlock</button>
+    <div class="err" id="gateErr"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="top">
+  <div class="in">
+    <div class="row">
+      <div class="brand"><img src="logo.svg" alt="">Trip Log</div>
+      <div class="who" id="whoToggle">
+        <button data-who="Parikh">Parikh</button>
+        <button data-who="Desai">Desai</button>
+        <button data-who="Split">Split</button>
+      </div>
+    </div>
+    <div class="loc">
+      <div class="day" id="locDay">—</div>
+      <div class="place">
+        <div class="p1" id="locPlace">Loading…</div>
+        <div class="p2">Today · tap to change</div>
+      </div>
+      <select id="dayPick"></select>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="lbl">What was it?</div>
+  <div class="grid" id="cats"></div>
+  <div class="more-cats" id="moreCats"></div>
+  <button class="morebtn" id="moreBtn">More categories ▾</button>
+
+  <div class="lbl">How much?</div>
+  <div class="amt-row">
+    <div class="amt-field"><span class="cur" id="curSym">€</span><input id="amount" type="number" inputmode="decimal" placeholder="0" step="0.01" min="0"></div>
+    <div class="cur-toggle" id="curToggle">
+      <button data-cur="EUR" class="on">EUR</button>
+      <button data-cur="ALL">lek</button>
+      <button data-cur="BAM">KM</button>
+    </div>
+  </div>
+
+  <div class="lbl">Note (optional)</div>
+  <input id="desc" type="text" placeholder="e.g. dinner at Vojsava" autocomplete="off">
+
+  <div class="recent" id="recentWrap" style="display:none">
+    <h2>Logged this session</h2>
+    <div id="recent"></div>
+  </div>
+
+  <div class="hint">Location auto-set from today's date. Meal auto-picked by time of day. Tap Save — that's it.</div>
+</main>
+
+<!-- SAVE BAR -->
+<div class="savebar">
+  <div class="in">
+    <div class="sum" id="sumLine">Pick a category &amp; amount</div>
+    <button class="savebtn" id="saveBtn" disabled>Save</button>
+  </div>
+</div>
+
+<div id="toast">✓ Saved</div>
+
+<script>
+/* ===========================================================================
+   CONFIG — set these two, then upload. They must match the Apps Script.
+   =========================================================================== */
+var PASSCODE   = "6035";                 // <-- same as SHARED_SECRET in the receiver script
+var WEBAPP_URL = "https://script.google.com/macros/s/AKfycby1zsTG6HcS8r_A1T4uAe_nn2f56nOA0C5TH1FvZjLI25Z6n44FnZKmVHekiowBg28E1w/exec";                       // <-- paste the Apps Script Web App /exec URL here
+/* =========================================================================== */
+
+// Itinerary: date (2026) -> [day number, location label]
+var ITIN = {
+  "2026-07-21":[2,"Podgorica / Tirana"],
+  "2026-07-22":[3,"Gjirokastër"],
+  "2026-07-23":[4,"Gjirokastër"],
+  "2026-07-24":[5,"Sarandë"],
+  "2026-07-25":[6,"Sarandë / Ksamil"],
+  "2026-07-26":[7,"Dhërmi"],
+  "2026-07-27":[8,"Berat → Shkodër"],
+  "2026-07-28":[9,"Shkodër"],
+  "2026-07-29":[10,"Theth"],
+  "2026-07-30":[11,"Mostar"],
+  "2026-07-31":[12,"Budva → Kotor"],
+  "2026-08-01":[13,"Lovćen"],
+  "2026-08-02":[14,"Bay of Kotor"],
+  "2026-08-03":[15,"Podgorica (departure)"]
+};
+
+var PRIMARY = [
+  ["Breakfast","🍳"],["Lunch","🥗"],["Dinner","🍽️"],
+  ["Snack / Coffee","☕"],["Entry fee","🎟️"],["Fuel","⛽"]
+];
+var MORE = [
+  ["Hotel","🏨"],["Rental car","🚗"],["Parking / Tolls","🅿️"],
+  ["Groceries","🛒"],["Boat / Ferry","⛵"],["Taxi / Transit","🚕"],
+  ["Excursion / Tour","🧭"],["Shopping","🛍️"],["Tips","💶"],
+  ["SIM / Data","📶"],["Other","✨"]
+];
+var CUR_SYM = {EUR:"€",ALL:"L",BAM:"KM"};
+
+var state = { cat:null, cur:"EUR", who:"Parikh", day:"", location:"" };
+var session = [];
+
+function $(id){return document.getElementById(id);}
+
+/* ---- gate ---- */
+function unlock(){
+  var v=$("gateInput").value.trim();
+  if(v===PASSCODE){
+    try{ localStorage.setItem("lot_unlocked","1"); }catch(e){}
+    $("gate").style.display="none";
+    boot();
+  } else {
+    $("gateErr").textContent="Wrong passcode";
+    $("gateInput").value="";
+  }
+}
+$("gateBtn").addEventListener("click",unlock);
+$("gateInput").addEventListener("keydown",function(e){if(e.key==="Enter")unlock();});
+try{ if(localStorage.getItem("lot_unlocked")==="1"){ $("gate").style.display="none"; setTimeout(boot,0);} }catch(e){}
+
+/* ---- location from date ---- */
+function todayKey(){
+  var d=new Date(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
+  return d.getFullYear()+"-"+m+"-"+day;
+}
+function nearestItin(){
+  var k=todayKey();
+  if(ITIN[k]) return [k,ITIN[k]];
+  // if today isn't a trip day, default to the first day
+  var keys=Object.keys(ITIN).sort();
+  for(var i=0;i<keys.length;i++){ if(keys[i]>=k) return [keys[i],ITIN[keys[i]]]; }
+  return [keys[keys.length-1],ITIN[keys[keys.length-1]]];
+}
+function applyDay(key){
+  var v=ITIN[key]; if(!v) return;
+  state.day="Day "+v[0]; state.location=v[1];
+  $("locDay").textContent=v[0];
+  $("locPlace").textContent=v[1];
+  $("dayPick").value=key;
+}
+
+/* ---- meal by time ---- */
+function mealByTime(){
+  var h=new Date().getHours();
+  if(h<11) return "Breakfast";
+  if(h<16) return "Lunch";
+  if(h<22) return "Dinner";
+  return "Snack / Coffee";
+}
+
+/* ---- render categories ---- */
+function catEl(name,emoji){
+  var d=document.createElement("div");
+  d.className="cat"; d.dataset.cat=name;
+  d.innerHTML='<span class="e">'+emoji+'</span><span class="t">'+name+'</span>';
+  d.addEventListener("click",function(){ selectCat(name); });
+  return d;
+}
+function renderCats(){
+  var g=$("cats"); PRIMARY.forEach(function(c){ g.appendChild(catEl(c[0],c[1])); });
+  var m=$("moreCats"); MORE.forEach(function(c){ m.appendChild(catEl(c[0],c[1])); });
+}
+function selectCat(name){
+  state.cat=name;
+  document.querySelectorAll(".cat").forEach(function(el){ el.classList.toggle("on",el.dataset.cat===name); });
+  updateSum();
+}
+
+/* ---- currency ---- */
+$("curToggle").addEventListener("click",function(e){
+  var b=e.target.closest("button"); if(!b)return;
+  state.cur=b.dataset.cur;
+  $("curToggle").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});
+  $("curSym").textContent=CUR_SYM[state.cur]||"€";
+  updateSum();
+});
+
+/* ---- who ---- */
+$("whoToggle").addEventListener("click",function(e){
+  var b=e.target.closest("button"); if(!b)return;
+  state.who=b.dataset.who;
+  $("whoToggle").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});
+  try{ localStorage.setItem("lot_who",state.who); }catch(e){}
+});
+
+/* ---- amount + summary ---- */
+$("amount").addEventListener("input",updateSum);
+function updateSum(){
+  var amt=parseFloat($("amount").value);
+  var ok=state.cat && amt>0;
+  $("saveBtn").disabled=!ok;
+  $("sumLine").innerHTML = ok
+    ? state.cat+" · <b>"+(CUR_SYM[state.cur]||"€")+(Math.round(amt*100)/100)+"</b> · "+state.who
+    : "Pick a category &amp; amount";
+}
+
+/* ---- day override ---- */
+function fillDayPick(){
+  var sel=$("dayPick");
+  sel.innerHTML=Object.keys(ITIN).sort().map(function(k){
+    return '<option value="'+k+'">Day '+ITIN[k][0]+' · '+ITIN[k][1]+'</option>';
+  }).join("");
+  sel.addEventListener("change",function(){ applyDay(sel.value); });
+}
+
+/* ---- more toggle ---- */
+$("moreBtn").addEventListener("click",function(){
+  var m=$("moreCats"); var open=m.classList.toggle("open");
+  $("moreBtn").textContent = open ? "Fewer categories ▴" : "More categories ▾";
+});
+
+/* ---- save ---- */
+$("saveBtn").addEventListener("click",saveExpense);
+function saveExpense(){
+  var amt=parseFloat($("amount").value); if(!(amt>0)||!state.cat) return;
+  var entry={
+    day:state.day, location:state.location, category:state.cat,
+    amount:amt, currency:state.cur, paid:state.who,
+    description:$("desc").value.trim(), ts:Date.now(), status:"pending"
+  };
+  session.unshift(entry); renderRecent();
+  // optimistic UI: clear immediately for the next entry
+  $("amount").value=""; $("desc").value="";
+  selectCat(mealByTime()); updateSum();
+  showToast();
+  sendEntry(entry);
+}
+function sendEntry(entry){
+  if(!WEBAPP_URL){ entry.status="nourl"; renderRecent(); return; }
+  var params=new URLSearchParams({
+    secret:PASSCODE, day:entry.day, location:entry.location, category:entry.category,
+    amount:String(entry.amount), currency:entry.currency, paid:entry.paid, description:entry.description
+  });
+  // Use image-style GET to dodge CORS; fall back to fetch no-cors.
+  fetch(WEBAPP_URL+"?"+params.toString(),{method:"GET",mode:"no-cors"})
+    .then(function(){ entry.status="ok"; renderRecent(); })
+    .catch(function(){ entry.status="err"; renderRecent(); });
+}
+function renderRecent(){
+  if(!session.length) return;
+  $("recentWrap").style.display="block";
+  $("recent").innerHTML=session.slice(0,12).map(function(e){
+    var emoji=(PRIMARY.concat(MORE).find(function(c){return c[0]===e.category;})||["","✨"])[1];
+    var st = e.status==="ok" ? "" : (e.status==="err"?" · ⚠ not sent":(e.status==="nourl"?" · (no link set)":" · saving…"));
+    return '<div class="ritem'+(e.status==="ok"?"":" pending")+'"><span class="re">'+emoji+'</span>'+
+      '<div class="rm"><div class="rt">'+e.category+'</div><div class="rs">'+e.location+st+'</div></div>'+
+      '<div class="ra">'+(CUR_SYM[e.currency]||"€")+(Math.round(e.amount*100)/100)+'</div></div>';
+  }).join("");
+}
+var toastT;
+function showToast(){ var t=$("toast"); t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(function(){t.classList.remove("show");},1400); }
+
+/* ---- boot ---- */
+function boot(){
+  renderCats(); fillDayPick();
+  var ni=nearestItin(); applyDay(ni[0]);
+  try{ var w=localStorage.getItem("lot_who"); if(w) state.who=w; }catch(e){}
+  $("whoToggle").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x.dataset.who===state.who);});
+  selectCat(mealByTime());
+  updateSum();
+}
+</script>
+</body>
+</html>
