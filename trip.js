@@ -31,10 +31,10 @@ function mapsUrl(q){
 }
 
 const COUNTRY_GRAD = {
-  albania:"linear-gradient(150deg,#c65f38,#a84c2a)",
-  bosnia:"linear-gradient(150deg,#3a7d5d,#2c6047)",
-  montenegro:"linear-gradient(150deg,#3d6ea5,#2d5482)",
-  transit:"linear-gradient(150deg,#8a8f98,#6c727b)"
+  albania:"radial-gradient(120% 130% at 15% 10%, rgba(255,214,170,.45), transparent 55%), radial-gradient(90% 90% at 90% 90%, rgba(120,40,20,.5), transparent 60%), linear-gradient(150deg,#c65f38,#8f3f22)",
+  bosnia:"radial-gradient(120% 130% at 15% 10%, rgba(180,230,200,.4), transparent 55%), radial-gradient(90% 90% at 90% 90%, rgba(20,60,40,.5), transparent 60%), linear-gradient(150deg,#3a7d5d,#255540)",
+  montenegro:"radial-gradient(120% 130% at 15% 10%, rgba(180,210,255,.4), transparent 55%), radial-gradient(90% 90% at 90% 90%, rgba(20,45,80,.55), transparent 60%), linear-gradient(150deg,#3d6ea5,#264a73)",
+  transit:"radial-gradient(120% 130% at 15% 10%, rgba(230,235,245,.35), transparent 55%), radial-gradient(90% 90% at 90% 90%, rgba(50,55,65,.5), transparent 60%), linear-gradient(150deg,#7c828d,#565c66)"
 };
 const CAT_ICON = {Food:"🍽️",Entry:"🏛️",Transport:"⛽",Lodging:"🏨",Boat:"⛵",Shopping:"🛍️",Fuel:"⛽",Tours:"⛵",Other:"✨"};
 const euro  = n => "€"+Math.round(n).toLocaleString("en-US");
@@ -99,7 +99,7 @@ function renderDays(){
       ? `<img class="thumb-img" src="${firstT}" ${fbT?`data-fb="${fbT}"`:""} alt="" loading="lazy" ${onerr(fbT)}>`
       : "";
     const photo = firstBig
-      ? `<div class="day-photo" style="background:${grad}"><img src="${firstBig}" ${fbBig?`data-fb="${fbBig}"`:""} alt="${escapeHtml(d.place)}" loading="lazy" ${onerr(fbBig)}><div class="cap">${escapeHtml(d.place)}</div></div>`
+      ? `<div class="day-photo" style="background:${grad}"><div class="ph-motif"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.4"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></div><img src="${firstBig}" ${fbBig?`data-fb="${fbBig}"`:""} alt="${escapeHtml(d.place)}" loading="lazy" ${onerr(fbBig)}><div class="cap">${escapeHtml(d.place)}</div></div>`
       : "";
     return `<details class="day ${d.country}" id="day-${d.n}"${d.n===3?" open":""}>
       <summary class="day-head">

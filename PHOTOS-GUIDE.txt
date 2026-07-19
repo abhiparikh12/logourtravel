@@ -1,0 +1,66 @@
+HOW TO ADD NICE PHOTOS TO EACH DAY (about 15 minutes)
+=====================================================
+
+The site looks for a photo named  img/<name>.jpg  for each day. Add the 14
+photos below and every day gets a beautiful image. Any you skip just show a
+clean gradient tile — nothing breaks.
+
+WHERE TO GET FREE PHOTOS (no copyright worries):
+  • https://unsplash.com   — free for any use, no attribution required
+  • https://pexels.com     — same
+
+For each row: go to Unsplash, type the search, pick a nice WIDE (landscape)
+photo, click "Download free", then rename the downloaded file to the exact name
+in the first column.
+
+  SAVE THE FILE AS          SEARCH UNSPLASH FOR
+  ----------------          -------------------
+  tirana.jpg                Tirana Albania
+  gjirokaster.jpg           Gjirokaster Albania
+  gjirokaster-castle.jpg    Gjirokaster castle
+  sarande.jpg               Sarande Albania
+  ksamil.jpg                Ksamil beach Albania
+  dhermi.jpg                Albanian riviera Dhermi
+  berat.jpg                 Berat Albania
+  komani-lake.jpg           Koman lake Albania
+  theth.jpg                 Theth Albania
+  mostar.jpg                Mostar bridge
+  kotor.jpg                 Kotor Montenegro
+  lovcen.jpg                Lovcen Montenegro
+  perast.jpg                Perast Montenegro
+  podgorica.jpg             Podgorica Montenegro
+
+  hero.jpg                  Kotor bay Montenegro   (big wide shot for the top banner)
+
+TIPS
+  • Landscape (wide) photos look best — they fill the day banners nicely.
+  • You don't need huge files; anything around 1200–2000 px wide is plenty.
+  • Filenames must match EXACTLY, all lowercase, ending in .jpg
+    (if a download is .jpeg or .png, rename it to .jpg — or tell your builder).
+
+--------------------------------------------------------------------------------
+UPLOADING THEM TO GITHUB
+--------------------------------------------------------------------------------
+The photos go in a folder called  img  in your repo.
+
+FIRST TIME — create the img folder:
+  1. On your repo page, click  Add file ▸ Create new file.
+  2. In the filename box type exactly:   img/placeholder.txt
+     (typing the "/" tells GitHub to make a folder called img)
+  3. Scroll down, click  Commit changes. The img folder now exists.
+
+THEN — upload the photos:
+  1. Click into the  img  folder on GitHub (click its name in the file list).
+  2. Click  Add file ▸ Upload files.
+  3. Drag all your renamed .jpg photos in at once.
+  4. Commit changes.
+
+Within a minute, refresh the trip page — each day now shows its photo. To
+replace one later, just upload a new file with the same name.
+
+--------------------------------------------------------------------------------
+LATER: use your OWN trip photos
+--------------------------------------------------------------------------------
+Once you're travelling, this is the nicest option: upload your own photo with
+the matching name (e.g. your Kotor photo as  img/kotor.jpg) and it replaces the
+stock one automatically. Same upload steps.
