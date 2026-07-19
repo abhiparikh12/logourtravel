@@ -263,7 +263,10 @@ function renderCosts(){
   // list
   const shown=EXP.filter(e=>costFilter==="all"||e.cat===costFilter);
   if(!EXP.length){
-    list.innerHTML=`<div class="cost-empty"><div class="big">Cost log coming soon</div>We log expenses live as we travel — real prices for meals, entries, fuel and boats. Check back once the trip is underway.</div>`;
+    const liveEmpty = (TRIP.costs && TRIP.costs.live);
+    list.innerHTML = liveEmpty
+      ? `<div class="cost-empty"><div class="big">No expenses logged yet</div>The log is connected and live. Amounts will appear here within a few minutes of the first entry.</div>`
+      : `<div class="cost-empty"><div class="big">Cost log coming soon</div>We log expenses live as we travel — real prices for meals, entries, fuel and boats. Check back once the trip is underway.</div>`;
     return;
   }
   if(!shown.length){ list.innerHTML=`<div class="cost-empty"><div class="big">Nothing in this filter</div>Try another category.</div>`; return; }
