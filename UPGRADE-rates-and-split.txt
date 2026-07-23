@@ -1,0 +1,91 @@
+UPGRADE: CURRENCY CONVERSION + SPLIT + EDIT
+===========================================
+Do these in order. Step 1 is the one you must not skip.
+
+
+STEP 1 — BACK UP YOUR DATA (30 seconds, do this first)
+------------------------------------------------------
+Open your "Log Our Travel — Expenses" spreadsheet.
+   File ▸ Make a copy ▸ name it "BACKUP before rates+split" ▸ Make a copy.
+Nothing below deletes rows, but take the snapshot anyway.
+
+
+STEP 2 — UPDATE THE APPS SCRIPT
+--------------------------------
+1. Go to script.google.com and open your EXISTING receiver project — the same
+   one whose /exec link is already in log.html. Do not start a new project.
+2. Select all the old code and paste in the contents of
+   expense-receiver.gs.txt. Press Ctrl+S.
+3. Function dropdown ▸ pick  setup  ▸ click Run. Authorize if prompted.
+   This adds three columns (Shared, Parikh %, Row ID) and creates a Rates tab.
+   Your existing rows are not modified.
+4. Deploy ▸ MANAGE DEPLOYMENTS ▸ click the pencil on your existing deployment
+   ▸ Version: "New version" ▸ Deploy.
+
+   ⚠ IMPORTANT: use "Manage deployments" and edit the existing one.
+     If you use "New deployment" you get a DIFFERENT /exec link and the
+     logger stops working.
+
+
+STEP 3 — PUBLISH THE RATES TAB
+-------------------------------
+1. In the spreadsheet you now have a "Rates" tab. Open it.
+   It lists: EUR 1, ALL 0.0101, BAM 0.5113, USD 0.92.
+   The number is "how many EUR is 1 unit". Edit any of them any time —
+   the website and logger pick up the change automatically.
+2. File ▸ Share ▸ Publish to web.
+   First dropdown: pick the "Rates" tab (NOT Entire Document).
+   Second dropdown: Comma-separated values (.csv). Click Publish.
+3. Copy that link and send it to your builder, OR paste it yourself into
+   balkans-2026.json — find "ratesCsvUrl": "" and put it between the quotes.
+
+   (If you skip this step everything still works — the site falls back to the
+   rates stored in balkans-2026.json. But then changing a rate means editing
+   that file instead of your phone.)
+
+
+STEP 4 — UPLOAD THE WEBSITE FILES
+----------------------------------
+Upload these four to GitHub, overwriting the old ones:
+   log.html
+   trip.js
+   site.css
+   trip-balkans-2026.html
+   balkans-2026.json
+Then hard-refresh the site (Ctrl+Shift+R) or use an incognito window.
+
+
+STEP 5 — FIX THE MISLABELLED LEK ROWS
+--------------------------------------
+Some existing rows are lek amounts that got saved with "EUR" in the Currency
+column. That is what was inflating your totals.
+
+In the spreadsheet, for each of those rows, change the Currency cell from
+EUR to ALL. Do not change the Amount — it is already correct.
+(Your rule of thumb: anything unusually large for a meal is almost certainly
+lek. Check hotel and car rental rows individually, since those can genuinely
+be over 50 euro.)
+
+The moment you change the Currency cell, the site converts that row properly.
+No re-entry, no recalculation on your side.
+
+
+WHAT'S NEW WHEN YOU USE IT
+---------------------------
+LOGGER (logourtravel.com/log.html)
+  • Currency now includes USD alongside EUR / lek / marka.
+  • Under the amount you see the live euro equivalent as you type.
+  • "Shared with both families" toggle — off means one family paid for
+    something only they used.
+  • Head counts (Parikh / Desai) default to 3 and 5, giving 37.5% / 62.5%.
+    Tap the +/- to change them for that one expense — e.g. if only the four
+    adults were at dinner, set both to 2 and it becomes 50/50.
+  • "Recent entries" now reads from the sheet, not just this session.
+    Tap any entry to edit the amount, currency, category, day, payer, split
+    or note — or delete it.
+
+PUBLIC SITE
+  • Every amount converts from the currency it was logged in.
+  • An EUR / USD toggle sits at the end of the filter row on "What it cost".
+  • The split is NEVER shown publicly. Visitors only ever see the
+    group-of-eight total, exactly as before.

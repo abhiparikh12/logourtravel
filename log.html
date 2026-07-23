@@ -74,9 +74,57 @@ h1{font-family:"Fraunces",serif;font-weight:900}
 .cur-toggle button{font-family:"Archivo Narrow";font-weight:700;font-size:11px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--paper);color:var(--muted);cursor:pointer;flex:1}
 .cur-toggle button.on{background:var(--gold);color:#3a2c07;border-color:var(--gold)}
 
+/* converted preview under the amount */
+.conv{min-height:17px;margin:7px 2px 0;font-size:12.5px;color:var(--muted)}
+.conv b{color:var(--teal);font-family:"Fraunces";font-weight:900;font-size:14px}
+
+/* split box */
+.split-box{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-top:6px}
+.split-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sw{display:flex;align-items:center;gap:9px;cursor:pointer}
+.sw input{position:absolute;opacity:0;width:0;height:0}
+.sw .track{width:42px;height:25px;border-radius:99px;background:#cfd4da;position:relative;transition:.15s;flex:0 0 auto}
+.sw .knob{position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw input:checked + .track{background:var(--good)}
+.sw input:checked + .track .knob{left:20px}
+.swlab{font-size:13.5px;font-weight:600}
+.resetpct{font-family:"Archivo Narrow";font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:10.5px;padding:6px 10px;border-radius:99px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer}
+.heads{display:flex;align-items:center;gap:10px;margin-top:11px}
+.heads.off{opacity:.4;pointer-events:none}
+.hd{flex:1;min-width:0}
+.hn{font-family:"Archivo Narrow";text-transform:uppercase;letter-spacing:.1em;font-size:10px;color:var(--muted);margin-bottom:4px}
+.stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.stepper button{width:34px;height:34px;border:0;background:transparent;font-size:18px;color:var(--teal);cursor:pointer}
+.stepper span{flex:1;text-align:center;font-family:"Fraunces";font-weight:900;font-size:16px}
+.pctout{flex:0 0 auto;text-align:right}
+.pv{font-family:"Fraunces";font-weight:900;font-size:15px;color:var(--terra-d);white-space:nowrap}
+.pl{font-family:"Archivo Narrow";text-transform:uppercase;letter-spacing:.08em;font-size:9.5px;color:var(--faint)}
+
 /* desc */
 #desc{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:12px 14px;font-size:15px;margin-top:6px}
 #desc:focus{outline:2px solid var(--sea)}
+
+/* edit sheet */
+#editWrap{position:fixed;inset:0;z-index:90;background:rgba(15,25,28,.55);display:none;align-items:flex-end;justify-content:center}
+#editWrap.open{display:flex}
+.sheet{width:100%;max-width:520px;max-height:92vh;overflow:auto;background:var(--ivory);border-radius:18px 18px 0 0;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+.sh-head{position:sticky;top:0;background:var(--ivory);display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;border-bottom:1px solid var(--line)}
+.sh-title{font-family:"Fraunces";font-weight:900;font-size:19px}
+.sh-x{border:0;background:transparent;font-size:19px;color:var(--muted);cursor:pointer;padding:4px 8px}
+.sh-body{padding:2px 16px 6px}
+.sh-body select{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:12px 14px;font-size:15px;margin-top:6px;color:var(--ink)}
+#eDesc{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:12px 14px;font-size:15px;margin-top:6px}
+.who.dark{display:flex;gap:6px;margin-top:6px}
+.who.dark button{flex:1;font-family:"Archivo Narrow";font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:11.5px;padding:11px 8px;border-radius:11px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer}
+.who.dark button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.sh-actions{display:flex;gap:10px;margin-top:18px}
+.sh-actions .save{flex:1;font-family:"Archivo Narrow";font-weight:700;text-transform:uppercase;letter-spacing:.14em;font-size:14px;padding:15px;border-radius:13px;border:0;background:var(--terra);color:#fff;cursor:pointer}
+.sh-actions .del{font-family:"Archivo Narrow";font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:12px;padding:15px 16px;border-radius:13px;border:1px solid #d8b4b4;background:#fff;color:#a33;cursor:pointer}
+.sh-msg{min-height:18px;font-size:12.5px;color:var(--muted);text-align:center;margin-top:9px}
+.refresh{float:right;font-family:"Archivo Narrow";font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:10px;padding:4px 9px;border-radius:99px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer}
+.ritem{cursor:pointer}
+.ritem .rconv{font-size:11px;color:var(--faint)}
+.ritem .rsplit{font-size:10.5px;color:var(--terra-d);font-family:"Archivo Narrow";text-transform:uppercase;letter-spacing:.06em}
 
 /* save bar */
 .savebar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(244,239,228,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
@@ -146,8 +194,33 @@ h1{font-family:"Fraunces",serif;font-weight:900}
     <div class="amt-field"><span class="cur" id="curSym">€</span><input id="amount" type="number" inputmode="decimal" placeholder="0" step="0.01" min="0"></div>
     <div class="cur-toggle" id="curToggle">
       <button data-cur="EUR" class="on">EUR</button>
+      <button data-cur="USD">USD</button>
       <button data-cur="ALL">lek</button>
       <button data-cur="BAM">KM</button>
+    </div>
+  </div>
+  <div class="conv" id="convLine"></div>
+
+  <div class="lbl">Split</div>
+  <div class="split-box">
+    <div class="split-top">
+      <label class="sw">
+        <input type="checkbox" id="sharedChk" checked>
+        <span class="track"><span class="knob"></span></span>
+        <span class="swlab">Shared with both families</span>
+      </label>
+      <button class="resetpct" id="resetPct" type="button">Reset 3/5</button>
+    </div>
+    <div class="heads" id="headsRow">
+      <div class="hd">
+        <div class="hn">Parikh</div>
+        <div class="stepper"><button data-fam="p" data-d="-1">−</button><span id="pCount">3</span><button data-fam="p" data-d="1">+</button></div>
+      </div>
+      <div class="hd">
+        <div class="hn">Desai</div>
+        <div class="stepper"><button data-fam="d" data-d="-1">−</button><span id="dCount">5</span><button data-fam="d" data-d="1">+</button></div>
+      </div>
+      <div class="pctout"><div class="pv" id="pctOut">37.5 / 62.5</div><div class="pl">Parikh / Desai</div></div>
     </div>
   </div>
 
@@ -155,12 +228,80 @@ h1{font-family:"Fraunces",serif;font-weight:900}
   <input id="desc" type="text" placeholder="e.g. dinner at Vojsava" autocomplete="off">
 
   <div class="recent" id="recentWrap" style="display:none">
-    <h2>Logged this session</h2>
+    <h2>Recent entries <button class="refresh" id="refreshBtn" type="button">refresh</button></h2>
     <div id="recent"></div>
   </div>
 
-  <div class="hint">Location auto-set from today's date. Meal auto-picked by time of day. Tap Save — that's it.</div>
+  <div class="hint">Location auto-set from today's date. Meal auto-picked by time of day. Tap Save — that's it. Tap any recent entry to edit it.</div>
 </main>
+
+<!-- EDIT SHEET -->
+<div id="editWrap">
+  <div class="sheet" id="editSheet">
+    <div class="sh-head">
+      <div class="sh-title">Edit entry</div>
+      <button class="sh-x" id="editClose" type="button">✕</button>
+    </div>
+    <div class="sh-body">
+      <div class="lbl">Amount</div>
+      <div class="amt-row">
+        <div class="amt-field"><span class="cur" id="eCurSym">€</span><input id="eAmount" type="number" inputmode="decimal" step="0.01" min="0"></div>
+        <div class="cur-toggle" id="eCurToggle">
+          <button data-cur="EUR">EUR</button>
+          <button data-cur="USD">USD</button>
+          <button data-cur="ALL">lek</button>
+          <button data-cur="BAM">KM</button>
+        </div>
+      </div>
+      <div class="conv" id="eConvLine"></div>
+
+      <div class="lbl">Category</div>
+      <select id="eCat"></select>
+
+      <div class="lbl">Day</div>
+      <select id="eDay"></select>
+
+      <div class="lbl">Paid by</div>
+      <div class="who dark" id="eWho">
+        <button data-who="Parikh">Parikh</button>
+        <button data-who="Desai">Desai</button>
+        <button data-who="Split">Split</button>
+      </div>
+
+      <div class="lbl">Split</div>
+      <div class="split-box">
+        <div class="split-top">
+          <label class="sw">
+            <input type="checkbox" id="eShared">
+            <span class="track"><span class="knob"></span></span>
+            <span class="swlab">Shared with both families</span>
+          </label>
+          <button class="resetpct" id="eResetPct" type="button">Reset 3/5</button>
+        </div>
+        <div class="heads">
+          <div class="hd">
+            <div class="hn">Parikh</div>
+            <div class="stepper"><button data-efam="p" data-d="-1">−</button><span id="epCount">3</span><button data-efam="p" data-d="1">+</button></div>
+          </div>
+          <div class="hd">
+            <div class="hn">Desai</div>
+            <div class="stepper"><button data-efam="d" data-d="-1">−</button><span id="edCount">5</span><button data-efam="d" data-d="1">+</button></div>
+          </div>
+          <div class="pctout"><div class="pv" id="ePctOut">37.5 / 62.5</div><div class="pl">Parikh / Desai</div></div>
+        </div>
+      </div>
+
+      <div class="lbl">Note</div>
+      <input id="eDesc" type="text" autocomplete="off">
+
+      <div class="sh-actions">
+        <button class="del" id="eDelete" type="button">Delete</button>
+        <button class="save" id="eSave" type="button">Save changes</button>
+      </div>
+      <div class="sh-msg" id="eMsg"></div>
+    </div>
+  </div>
+</div>
 
 <!-- SAVE BAR -->
 <div class="savebar">
@@ -208,10 +349,32 @@ var MORE = [
   ["Excursion / Tour","🧭"],["Shopping","🛍️"],["Tips","💶"],
   ["SIM / Data","📶"],["Other","✨"]
 ];
-var CUR_SYM = {EUR:"€",ALL:"L",BAM:"KM"};
+var CUR_SYM = {EUR:"€",ALL:"L",BAM:"KM",USD:"$"};
 
-var state = { cat:null, cur:"EUR", who:"Parikh", day:"", location:"" };
+// Fallback exchange rates (EUR per 1 unit). Overwritten by the Rates tab
+// in your sheet as soon as the receiver answers, so editing them there is
+// enough — no need to change this file.
+var RATES = {EUR:1, ALL:0.0101, BAM:0.5113, USD:0.92};
+
+// Group makeup. Defaults to 3 Parikh / 5 Desai = 37.5% / 62.5%.
+var FULL_P = 3, FULL_D = 5;
+
+var state = { cat:null, cur:"EUR", who:"Parikh", day:"", location:"",
+              shared:true, p:FULL_P, d:FULL_D };
 var session = [];
+var serverEntries = [];
+var editing = null;   // the entry currently open in the edit sheet
+
+function toEur(amt, cur){
+  var r = RATES[(cur||"EUR").toUpperCase()];
+  return (typeof r === "number" && r > 0) ? amt * r : amt;
+}
+function fmtEur(n){ return "€" + (Math.round(n*100)/100).toFixed(2); }
+function pctFromHeads(p, d){
+  var t = p + d;
+  if(t <= 0) return 50;
+  return Math.round((p / t) * 1000) / 10;   // one decimal
+}
 
 function $(id){return document.getElementById(id);}
 
@@ -288,6 +451,52 @@ $("curToggle").addEventListener("click",function(e){
   updateSum();
 });
 
+/* ---- split controls ---- */
+function renderSplit(){
+  $("pCount").textContent=state.p;
+  $("dCount").textContent=state.d;
+  var p=pctFromHeads(state.p,state.d);
+  $("pctOut").textContent = state.shared ? (p+" / "+(Math.round((100-p)*10)/10)) : "not shared";
+  $("headsRow").classList.toggle("off", !state.shared);
+}
+$("sharedChk").addEventListener("change",function(){
+  state.shared=$("sharedChk").checked; renderSplit(); updateSum();
+});
+$("headsRow").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-fam]"); if(!b)return;
+  var d=parseInt(b.dataset.d,10);
+  if(b.dataset.fam==="p") state.p=Math.max(0,Math.min(9,state.p+d));
+  else                    state.d=Math.max(0,Math.min(9,state.d+d));
+  if(state.p===0 && state.d===0) state.p=1;   // never both zero
+  renderSplit(); updateSum();
+});
+$("resetPct").addEventListener("click",function(){
+  state.p=FULL_P; state.d=FULL_D; renderSplit(); updateSum();
+});
+
+/* ---- live converted preview ---- */
+function renderConv(){
+  var amt=parseFloat($("amount").value);
+  var el=$("convLine");
+  if(!(amt>0) || state.cur==="EUR"){ el.innerHTML=""; return; }
+  el.innerHTML = "≈ <b>"+fmtEur(toEur(amt,state.cur))+"</b> at "+
+                 (RATES[state.cur]||1)+" EUR per "+state.cur;
+}
+
+/* ---- fetch live rates from the sheet ---- */
+function loadRates(){
+  if(!WEBAPP_URL) return;
+  fetch(WEBAPP_URL+"?action=rates&secret="+encodeURIComponent(PASSCODE))
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if(j && j.ok && j.rates){
+        Object.keys(j.rates).forEach(function(k){ RATES[k.toUpperCase()]=j.rates[k]; });
+        renderConv(); renderRecent();
+      }
+    })
+    .catch(function(){ /* keep fallback rates */ });
+}
+
 /* ---- who ---- */
 $("whoToggle").addEventListener("click",function(e){
   var b=e.target.closest("button"); if(!b)return;
@@ -297,7 +506,7 @@ $("whoToggle").addEventListener("click",function(e){
 });
 
 /* ---- amount + summary ---- */
-$("amount").addEventListener("input",updateSum);
+$("amount").addEventListener("input",function(){ updateSum(); renderConv(); });
 function updateSum(){
   var amt=parseFloat($("amount").value);
   var ok=state.cat && amt>0;
@@ -327,13 +536,16 @@ $("saveBtn").addEventListener("click",saveExpense);
 function saveExpense(){
   var amt=parseFloat($("amount").value); if(!(amt>0)||!state.cat) return;
   var entry={
+    rowId:"e"+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),
     day:state.day, location:state.location, category:state.cat,
     amount:amt, currency:state.cur, paid:state.who,
-    description:$("desc").value.trim(), ts:Date.now(), status:"pending"
+    description:$("desc").value.trim(),
+    shared:state.shared, parikhPct:pctFromHeads(state.p,state.d),
+    ts:Date.now(), status:"pending"
   };
   session.unshift(entry); renderRecent();
   // optimistic UI: clear immediately for the next entry
-  $("amount").value=""; $("desc").value="";
+  $("amount").value=""; $("desc").value=""; renderConv();
   selectCat(mealByTime()); updateSum();
   showToast();
   sendEntry(entry);
@@ -341,25 +553,175 @@ function saveExpense(){
 function sendEntry(entry){
   if(!WEBAPP_URL){ entry.status="nourl"; renderRecent(); return; }
   var params=new URLSearchParams({
-    secret:PASSCODE, day:entry.day, location:entry.location, category:entry.category,
-    amount:String(entry.amount), currency:entry.currency, paid:entry.paid, description:entry.description
+    secret:PASSCODE, rowId:entry.rowId, day:entry.day, location:entry.location,
+    category:entry.category, amount:String(entry.amount), currency:entry.currency,
+    paid:entry.paid, description:entry.description,
+    shared:entry.shared?"TRUE":"FALSE", parikhPct:String(entry.parikhPct)
   });
-  // Use image-style GET to dodge CORS; fall back to fetch no-cors.
   fetch(WEBAPP_URL+"?"+params.toString(),{method:"GET",mode:"no-cors"})
-    .then(function(){ entry.status="ok"; renderRecent(); })
+    .then(function(){ entry.status="ok"; renderRecent(); setTimeout(loadEntries,1200); })
     .catch(function(){ entry.status="err"; renderRecent(); });
 }
+
+/* ---- recent entries (server-backed, tap to edit) ---- */
+function loadEntries(){
+  if(!WEBAPP_URL) return;
+  fetch(WEBAPP_URL+"?action=list&limit=25&secret="+encodeURIComponent(PASSCODE))
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if(j && j.ok && j.entries){
+        serverEntries=j.entries;
+        // drop session copies that the server now knows about
+        var ids={}; serverEntries.forEach(function(e){ ids[e.rowId]=1; });
+        session=session.filter(function(e){ return !ids[e.rowId]; });
+        renderRecent();
+      }
+    })
+    .catch(function(){ /* offline: session list still shows */ });
+}
+function emojiFor(cat){
+  var f=PRIMARY.concat(MORE).find(function(c){ return c[0]===cat; });
+  return f?f[1]:"✨";
+}
 function renderRecent(){
-  if(!session.length) return;
+  var all=session.concat(serverEntries);
+  if(!all.length){ $("recentWrap").style.display="none"; return; }
   $("recentWrap").style.display="block";
-  $("recent").innerHTML=session.slice(0,12).map(function(e){
-    var emoji=(PRIMARY.concat(MORE).find(function(c){return c[0]===e.category;})||["","✨"])[1];
-    var st = e.status==="ok" ? "" : (e.status==="err"?" · ⚠ not sent":(e.status==="nourl"?" · (no link set)":" · saving…"));
-    return '<div class="ritem'+(e.status==="ok"?"":" pending")+'"><span class="re">'+emoji+'</span>'+
-      '<div class="rm"><div class="rt">'+e.category+'</div><div class="rs">'+e.location+st+'</div></div>'+
-      '<div class="ra">'+(CUR_SYM[e.currency]||"€")+(Math.round(e.amount*100)/100)+'</div></div>';
+  $("recent").innerHTML=all.slice(0,20).map(function(e,i){
+    var pending = e.status && e.status!=="ok";
+    var st = !e.status ? "" :
+      (e.status==="ok" ? "" : (e.status==="err"?" · ⚠ not sent":(e.status==="nourl"?" · (no link set)":" · saving…")));
+    var eur = toEur(e.amount, e.currency);
+    var conv = (e.currency && e.currency!=="EUR")
+      ? '<div class="rconv">'+(CUR_SYM[e.currency]||"")+e.amount+" "+e.currency+" → "+fmtEur(eur)+'</div>' : "";
+    var sp = (e.shared===false)
+      ? '<div class="rsplit">not shared</div>'
+      : '<div class="rsplit">'+(e.parikhPct===undefined?37.5:e.parikhPct)+"% / "+
+        (Math.round((100-(e.parikhPct===undefined?37.5:e.parikhPct))*10)/10)+"%</div>";
+    return '<div class="ritem'+(pending?" pending":"")+'" data-idx="'+i+'">'+
+      '<span class="re">'+emojiFor(e.category)+'</span>'+
+      '<div class="rm"><div class="rt">'+e.category+'</div>'+
+      '<div class="rs">'+(e.location||"")+st+'</div>'+conv+sp+'</div>'+
+      '<div class="ra">'+fmtEur(eur)+'</div></div>';
   }).join("");
 }
+$("recent").addEventListener("click",function(e){
+  var it=e.target.closest(".ritem"); if(!it) return;
+  var all=session.concat(serverEntries);
+  var entry=all[parseInt(it.dataset.idx,10)];
+  if(entry && entry.rowId) openEdit(entry);
+});
+$("refreshBtn").addEventListener("click",loadEntries);
+
+/* ---- edit sheet ---- */
+var eState={cur:"EUR",who:"Parikh",shared:true,p:FULL_P,d:FULL_D};
+function openEdit(entry){
+  editing=entry;
+  eState.cur=entry.currency||"EUR";
+  eState.who=entry.paid||"Parikh";
+  eState.shared=(entry.shared!==false);
+  var pct=(entry.parikhPct===undefined)?pctFromHeads(FULL_P,FULL_D):entry.parikhPct;
+  // Recover a head-count that matches the stored percentage where possible.
+  var found=false;
+  for(var p=0;p<=9 && !found;p++){
+    for(var d=0;d<=9;d++){
+      if(p+d>0 && Math.abs(pctFromHeads(p,d)-pct)<0.05){ eState.p=p; eState.d=d; found=true; break; }
+    }
+  }
+  if(!found){ eState.p=FULL_P; eState.d=FULL_D; }
+
+  $("eAmount").value=entry.amount;
+  $("eDesc").value=entry.description||"";
+  $("eCat").innerHTML=PRIMARY.concat(MORE).map(function(c){
+    return '<option value="'+c[0]+'"'+(c[0]===entry.category?" selected":"")+'>'+c[1]+" "+c[0]+'</option>';
+  }).join("");
+  $("eDay").innerHTML=Object.keys(ITIN).sort().map(function(k){
+    var lbl="Day "+ITIN[k][0]+" · "+ITIN[k][1];
+    var sel=(entry.day==="Day "+ITIN[k][0])?" selected":"";
+    return '<option value="'+k+'"'+sel+'>'+lbl+'</option>';
+  }).join("");
+  $("eShared").checked=eState.shared;
+  syncEditCur(); syncEditWho(); renderESplit(); renderEConv();
+  $("eMsg").textContent="";
+  $("editWrap").classList.add("open");
+}
+function closeEdit(){ $("editWrap").classList.remove("open"); editing=null; }
+$("editClose").addEventListener("click",closeEdit);
+$("editWrap").addEventListener("click",function(e){ if(e.target===$("editWrap")) closeEdit(); });
+
+function syncEditCur(){
+  $("eCurToggle").querySelectorAll("button").forEach(function(x){
+    x.classList.toggle("on",x.dataset.cur===eState.cur);
+  });
+  $("eCurSym").textContent=CUR_SYM[eState.cur]||"€";
+}
+function syncEditWho(){
+  $("eWho").querySelectorAll("button").forEach(function(x){
+    x.classList.toggle("on",x.dataset.who===eState.who);
+  });
+}
+function renderESplit(){
+  $("epCount").textContent=eState.p;
+  $("edCount").textContent=eState.d;
+  var p=pctFromHeads(eState.p,eState.d);
+  $("ePctOut").textContent = eState.shared ? (p+" / "+(Math.round((100-p)*10)/10)) : "not shared";
+}
+function renderEConv(){
+  var amt=parseFloat($("eAmount").value); var el=$("eConvLine");
+  if(!(amt>0) || eState.cur==="EUR"){ el.innerHTML=""; return; }
+  el.innerHTML="≈ <b>"+fmtEur(toEur(amt,eState.cur))+"</b> at "+(RATES[eState.cur]||1)+" EUR per "+eState.cur;
+}
+$("eCurToggle").addEventListener("click",function(e){
+  var b=e.target.closest("button"); if(!b)return;
+  eState.cur=b.dataset.cur; syncEditCur(); renderEConv();
+});
+$("eWho").addEventListener("click",function(e){
+  var b=e.target.closest("button"); if(!b)return;
+  eState.who=b.dataset.who; syncEditWho();
+});
+$("eAmount").addEventListener("input",renderEConv);
+$("eShared").addEventListener("change",function(){ eState.shared=$("eShared").checked; renderESplit(); });
+$("editSheet").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-efam]"); if(!b)return;
+  var d=parseInt(b.dataset.d,10);
+  if(b.dataset.efam==="p") eState.p=Math.max(0,Math.min(9,eState.p+d));
+  else                     eState.d=Math.max(0,Math.min(9,eState.d+d));
+  if(eState.p===0 && eState.d===0) eState.p=1;
+  renderESplit();
+});
+$("eResetPct").addEventListener("click",function(){
+  eState.p=FULL_P; eState.d=FULL_D; renderESplit();
+});
+$("eSave").addEventListener("click",function(){
+  if(!editing) return;
+  var amt=parseFloat($("eAmount").value);
+  if(!(amt>0)){ $("eMsg").textContent="Enter a valid amount."; return; }
+  var dayKey=$("eDay").value;
+  var params=new URLSearchParams({
+    secret:PASSCODE, action:"update", rowId:editing.rowId,
+    amount:String(amt), currency:eState.cur, category:$("eCat").value,
+    day:"Day "+ITIN[dayKey][0], location:ITIN[dayKey][1],
+    paid:eState.who, description:$("eDesc").value.trim(),
+    shared:eState.shared?"TRUE":"FALSE",
+    parikhPct:String(pctFromHeads(eState.p,eState.d))
+  });
+  $("eMsg").textContent="Saving…";
+  fetch(WEBAPP_URL+"?"+params.toString(),{method:"GET",mode:"no-cors"})
+    .then(function(){ $("eMsg").textContent="Saved."; setTimeout(function(){ closeEdit(); loadEntries(); },500); })
+    .catch(function(){ $("eMsg").textContent="Could not save — check your connection."; });
+});
+$("eDelete").addEventListener("click",function(){
+  if(!editing) return;
+  if(!confirm("Delete this entry? This removes the row from the sheet.")) return;
+  var params=new URLSearchParams({
+    secret:PASSCODE, action:"update", rowId:editing.rowId, deleteRow:"1"
+  });
+  $("eMsg").textContent="Deleting…";
+  fetch(WEBAPP_URL+"?"+params.toString(),{method:"GET",mode:"no-cors"})
+    .then(function(){ setTimeout(function(){ closeEdit(); loadEntries(); },500); })
+    .catch(function(){ $("eMsg").textContent="Could not delete — check your connection."; });
+});
+
 var toastT;
 function showToast(){ var t=$("toast"); t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(function(){t.classList.remove("show");},1400); }
 
@@ -370,7 +732,8 @@ function boot(){
   try{ var w=localStorage.getItem("lot_who"); if(w) state.who=w; }catch(e){}
   $("whoToggle").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x.dataset.who===state.who);});
   selectCat(mealByTime());
-  updateSum();
+  renderSplit(); updateSum();
+  loadRates(); loadEntries();
 }
 </script>
 </body>

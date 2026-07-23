@@ -1,0 +1,308 @@
+/**
+ * ============================================================================
+ *  LOG OUR TRAVEL — expense receiver v2  (rates + split + edit)
+ * ----------------------------------------------------------------------------
+ *  WHAT CHANGED FROM v1
+ *   • Adds three columns to the Expenses tab:  Shared | Parikh % | Row ID
+ *     (existing rows are NOT touched — blanks are read as sensible defaults)
+ *   • Adds a "Rates" tab you can edit from your phone to set exchange rates
+ *   • Adds two new actions the logger uses:  list  (recent rows) and
+ *     update  (edit a row by its Row ID)
+ *
+ *  HOW TO INSTALL (5 minutes)
+ *   0. FIRST: open your expenses spreadsheet and do  File ▸ Make a copy,
+ *      name it "BACKUP before rates+split". Do not skip this.
+ *   1. Go to https://script.google.com and open your EXISTING receiver project
+ *      (the one whose /exec URL is already in log.html).
+ *   2. Select all the old code and paste this file over it. Ctrl+S to save.
+ *   3. Function dropdown ▸ pick  setup  ▸ Run. Authorize if asked.
+ *      This adds the new headers + creates the Rates tab. It never edits or
+ *      deletes any existing expense row.
+ *   4. Deploy ▸ MANAGE DEPLOYMENTS ▸ pencil/edit the EXISTING deployment ▸
+ *      Version: "New version" ▸ Deploy.
+ *      ⚠ Do NOT use "New deployment" — that changes the /exec URL and breaks
+ *        the logger. Edit the existing one so the URL stays the same.
+ *   5. Open the spreadsheet. You now have a "Rates" tab. Publish it as CSV:
+ *      File ▸ Share ▸ Publish to web ▸ pick the "Rates" tab ▸ format CSV ▸
+ *      Publish. Copy that link — it goes into balkans-2026.json as
+ *      costs.ratesCsvUrl.
+ * ============================================================================
+ */
+
+// Must MATCH the passcode used in the /log page.
+var SHARED_SECRET = "6035";
+
+var SHEET_NAME  = "Log Our Travel — Expenses";
+var TAB_NAME    = "Expenses";
+var RATES_TAB   = "Rates";
+
+// Original 8 columns + 3 new ones. Order matters for appendRow.
+var HEADERS = ["Timestamp","Day","Location","Category","Amount","Currency",
+               "Paid by","Description","Shared","Parikh %","Row ID"];
+
+// Defaults applied when a cell is blank (so old rows just work).
+var DEFAULT_SHARED   = true;
+var DEFAULT_PARIKH_PCT = 37.5;   // 3 of 8 people
+
+// Seed rates: how many EUR is ONE unit of this currency.
+// You can edit these any time in the Rates tab — no code change needed.
+var SEED_RATES = [
+  ["Currency","EUR per 1 unit","Note"],
+  ["EUR", 1,       "base currency"],
+  ["ALL", 0.0101,  "Albanian lek (about 99 lek = 1 EUR)"],
+  ["BAM", 0.5113,  "Bosnian marka (fixed peg)"],
+  ["USD", 0.92,    "US dollar - edit to today's rate"]
+];
+
+/** Run once after pasting this file. Safe to run again later. */
+function setup(){
+  var ss = getSpreadsheet_();
+  var sh = ss.getSheetByName(TAB_NAME) || ss.insertSheet(TAB_NAME);
+
+  // Write the header row if the sheet is empty, otherwise only ADD the
+  // missing new headers to the right. Existing data is never rewritten.
+  if(sh.getLastRow() === 0){
+    sh.appendRow(HEADERS);
+  } else {
+    var lastCol = Math.max(sh.getLastColumn(), 1);
+    var existing = sh.getRange(1,1,1,lastCol).getValues()[0]
+                     .map(function(h){ return String(h).trim(); });
+    for(var i=0;i<HEADERS.length;i++){
+      if(existing.indexOf(HEADERS[i]) === -1){
+        sh.getRange(1, existing.length + 1).setValue(HEADERS[i]);
+        existing.push(HEADERS[i]);
+      }
+    }
+  }
+
+  // Rates tab — created once, then left alone so your edits survive.
+  var rt = ss.getSheetByName(RATES_TAB);
+  if(!rt){
+    rt = ss.insertSheet(RATES_TAB);
+    rt.getRange(1,1,SEED_RATES.length,3).setValues(SEED_RATES);
+    rt.setFrozenRows(1);
+    rt.getRange(1,1,1,3).setFontWeight("bold");
+  }
+
+  Logger.log("──────────────────────────────────────────────");
+  Logger.log("✅ Ready. Spreadsheet: " + ss.getUrl());
+  Logger.log("Expenses tab headers are up to date. Existing rows untouched.");
+  Logger.log("Rates tab is ready — edit the numbers there any time.");
+  Logger.log("NEXT: Deploy ▸ Manage deployments ▸ edit the EXISTING deployment ▸ New version ▸ Deploy.");
+  Logger.log("THEN: publish the Rates tab as CSV and put the link in balkans-2026.json (costs.ratesCsvUrl).");
+  Logger.log("──────────────────────────────────────────────");
+}
+
+/* -------------------------------------------------------------------------
+   Web app entry point. Everything is a GET so the static log page can call
+   it without CORS preflight.
+   Actions:  ping | rates | list | add (default) | update
+   ------------------------------------------------------------------------- */
+function doGet(e){
+  var p = (e && e.parameter) ? e.parameter : {};
+
+  if(p.ping){ return json_({ok:true, pong:true, version:2}); }
+  if(p.secret !== SHARED_SECRET){ return json_({ok:false, error:"unauthorized"}); }
+
+  try{
+    if(p.action === "rates")  return json_({ok:true, rates:readRates_()});
+    if(p.action === "list")   return json_({ok:true, entries:listEntries_(p.limit)});
+    if(p.action === "update") return json_(updateEntry_(p));
+    return json_(addEntry_(p));
+  }catch(err){
+    return json_({ok:false, error:String(err)});
+  }
+}
+
+/* ---------- add ---------- */
+function addEntry_(p){
+  var amt = parseFloat(String(p.amount||"").replace(/[^0-9.]/g,""));
+  if(!(amt>0)) return {ok:false, error:"bad_amount"};
+
+  var sh = getExpensesSheet_();
+  var map = headerMap_(sh);
+  var rowId = p.rowId || makeRowId_();
+
+  var record = {
+    "Timestamp":   new Date(),
+    "Day":         p.day || "",
+    "Location":    p.location || "",
+    "Category":    p.category || "",
+    "Amount":      amt,
+    "Currency":    p.currency || "EUR",
+    "Paid by":     p.paid || "",
+    "Description": p.description || "",
+    "Shared":      parseBool_(p.shared, DEFAULT_SHARED),
+    "Parikh %":    parsePct_(p.parikhPct, DEFAULT_PARIKH_PCT),
+    "Row ID":      rowId
+  };
+
+  // Build the row positionally from the sheet's ACTUAL header order, so this
+  // works even if columns were reordered by hand.
+  var width = Math.max(sh.getLastColumn(), HEADERS.length);
+  var row = new Array(width).fill("");
+  for(var name in record){
+    var idx = map[name];
+    if(idx !== undefined) row[idx] = record[name];
+  }
+  sh.appendRow(row);
+  return {ok:true, rowId:rowId};
+}
+
+/* ---------- list (most recent first) ---------- */
+function listEntries_(limit){
+  var sh = getExpensesSheet_();
+  var last = sh.getLastRow();
+  if(last < 2) return [];
+  var n = Math.min(parseInt(limit,10) || 25, 100);
+  var startRow = Math.max(2, last - n + 1);
+  var width = Math.max(sh.getLastColumn(), HEADERS.length);
+  var values = sh.getRange(startRow, 1, last - startRow + 1, width).getValues();
+  var map = headerMap_(sh);
+
+  var out = [];
+  for(var i=values.length-1; i>=0; i--){
+    var v = values[i];
+    var amt = parseFloat(String(get_(v,map,"Amount")).replace(/[^0-9.\-]/g,""));
+    if(!(amt>0)) continue;
+    var sheetRow = startRow + i;
+    var rowId = String(get_(v,map,"Row ID")||"").trim();
+    if(!rowId){
+      // Old row with no ID: mint one and write it back so it becomes editable.
+      rowId = makeRowId_() + "-r" + sheetRow;
+      if(map["Row ID"] !== undefined){
+        sh.getRange(sheetRow, map["Row ID"]+1).setValue(rowId);
+      }
+    }
+    out.push({
+      rowId: rowId,
+      day: String(get_(v,map,"Day")||""),
+      location: String(get_(v,map,"Location")||""),
+      category: String(get_(v,map,"Category")||""),
+      amount: amt,
+      currency: String(get_(v,map,"Currency")||"EUR").trim() || "EUR",
+      paid: String(get_(v,map,"Paid by")||""),
+      description: String(get_(v,map,"Description")||""),
+      shared: parseBool_(get_(v,map,"Shared"), DEFAULT_SHARED),
+      parikhPct: parsePct_(get_(v,map,"Parikh %"), DEFAULT_PARIKH_PCT)
+    });
+  }
+  return out;
+}
+
+/* ---------- update by Row ID ---------- */
+function updateEntry_(p){
+  var id = String(p.rowId||"").trim();
+  if(!id) return {ok:false, error:"missing_rowid"};
+
+  var sh = getExpensesSheet_();
+  var map = headerMap_(sh);
+  if(map["Row ID"] === undefined) return {ok:false, error:"no_rowid_column"};
+
+  var last = sh.getLastRow();
+  if(last < 2) return {ok:false, error:"not_found"};
+
+  var ids = sh.getRange(2, map["Row ID"]+1, last-1, 1).getValues();
+  var target = -1;
+  for(var i=0;i<ids.length;i++){
+    if(String(ids[i][0]).trim() === id){ target = i + 2; break; }
+  }
+  if(target < 0) return {ok:false, error:"not_found"};
+
+  // Delete support — used by the logger's "remove" button.
+  if(String(p.deleteRow||"") === "1"){
+    sh.deleteRow(target);
+    return {ok:true, deleted:true};
+  }
+
+  // Only write the fields that were actually supplied.
+  var writes = {};
+  if(p.day        !== undefined) writes["Day"] = p.day;
+  if(p.location   !== undefined) writes["Location"] = p.location;
+  if(p.category   !== undefined) writes["Category"] = p.category;
+  if(p.currency   !== undefined) writes["Currency"] = p.currency;
+  if(p.paid       !== undefined) writes["Paid by"] = p.paid;
+  if(p.description!== undefined) writes["Description"] = p.description;
+  if(p.shared     !== undefined) writes["Shared"] = parseBool_(p.shared, DEFAULT_SHARED);
+  if(p.parikhPct  !== undefined) writes["Parikh %"] = parsePct_(p.parikhPct, DEFAULT_PARIKH_PCT);
+  if(p.amount     !== undefined){
+    var a = parseFloat(String(p.amount).replace(/[^0-9.]/g,""));
+    if(!(a>0)) return {ok:false, error:"bad_amount"};
+    writes["Amount"] = a;
+  }
+
+  for(var name in writes){
+    var idx = map[name];
+    if(idx !== undefined) sh.getRange(target, idx+1).setValue(writes[name]);
+  }
+  return {ok:true, updated:true};
+}
+
+/* ---------- rates ---------- */
+function readRates_(){
+  var ss = getSpreadsheet_();
+  var rt = ss.getSheetByName(RATES_TAB);
+  var rates = {EUR:1};
+  if(!rt || rt.getLastRow() < 2) return rates;
+  var vals = rt.getRange(2,1,rt.getLastRow()-1,2).getValues();
+  for(var i=0;i<vals.length;i++){
+    var code = String(vals[i][0]||"").trim().toUpperCase();
+    var val  = parseFloat(vals[i][1]);
+    if(code && val > 0) rates[code] = val;
+  }
+  if(!rates.EUR) rates.EUR = 1;
+  return rates;
+}
+
+/* ---------- helpers ---------- */
+function getSpreadsheet_(){
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty("SHEET_ID");
+  if(id){
+    try{ return SpreadsheetApp.openById(id); }catch(e){ /* recreate below */ }
+  }
+  var ss = SpreadsheetApp.create(SHEET_NAME);
+  props.setProperty("SHEET_ID", ss.getId());
+  return ss;
+}
+function getExpensesSheet_(){
+  var ss = getSpreadsheet_();
+  var sh = ss.getSheetByName(TAB_NAME) || ss.insertSheet(TAB_NAME);
+  if(sh.getLastRow() === 0) sh.appendRow(HEADERS);
+  return sh;
+}
+/** name -> zero-based column index, from the sheet's real header row. */
+function headerMap_(sh){
+  var width = Math.max(sh.getLastColumn(), 1);
+  var head = sh.getRange(1,1,1,width).getValues()[0];
+  var map = {};
+  for(var i=0;i<head.length;i++){
+    var h = String(head[i]).trim();
+    if(h) map[h] = i;
+  }
+  return map;
+}
+function get_(rowValues, map, name){
+  var i = map[name];
+  return (i === undefined) ? "" : rowValues[i];
+}
+function makeRowId_(){
+  return "e" + Date.now().toString(36) + Math.floor(Math.random()*1e4).toString(36);
+}
+function parseBool_(v, dflt){
+  if(v === undefined || v === null || v === "") return dflt;
+  var s = String(v).trim().toLowerCase();
+  if(s === "true" || s === "1" || s === "yes" || s === "y") return true;
+  if(s === "false"|| s === "0" || s === "no"  || s === "n") return false;
+  return dflt;
+}
+function parsePct_(v, dflt){
+  if(v === undefined || v === null || v === "") return dflt;
+  var n = parseFloat(String(v).replace(/[^0-9.\-]/g,""));
+  if(isNaN(n)) return dflt;
+  return Math.max(0, Math.min(100, n));
+}
+function json_(obj){
+  return ContentService.createTextOutput(JSON.stringify(obj))
+                       .setMimeType(ContentService.MimeType.JSON);
+}
